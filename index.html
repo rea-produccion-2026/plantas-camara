@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REA · Editor de plantas de cámara</title>
+<style>
+:root{--bg:#141414;--pan:#1c1c1c;--pan2:#252525;--bor:#363636;--txt:#e4e4e4;--mut:#9b9b9b;--acc:#e8a33d;--acc2:#f3cf84;--azul:#1e88e5}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font:13px/1.35 "Segoe UI",system-ui,Arial,sans-serif;overflow:hidden}
+#app{display:grid;grid-template-columns:196px minmax(0,1fr) 312px;grid-template-rows:auto minmax(0,1fr);height:100vh}
+header{grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--pan);border-bottom:1px solid var(--bor);flex-wrap:wrap}
+header h1{font-size:14px;margin:0 8px 0 0;color:var(--acc2);white-space:nowrap;font-weight:700}
+header .sep{flex:1}
+input,select,textarea,button{font:inherit;color:var(--txt);background:var(--pan2);border:1px solid #4a4a4a;border-radius:5px;padding:4px 7px}
+textarea{resize:vertical;width:100%}
+input[type=number]{width:76px}
+input[type=color]{padding:0;width:30px;height:24px;border:1px solid #4a4a4a;background:none;cursor:pointer}
+button{cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--acc)}
+button.on{background:var(--acc);color:#1b1b1b;border-color:var(--acc);font-weight:700}
+button.pri{background:#3a2f1c;border-color:#8a6a2c;color:var(--acc2);font-weight:600}
+button:disabled{opacity:.35;cursor:default}
+#tit{width:250px}#aut{width:190px}
+#herr{background:var(--pan);border-right:1px solid var(--bor);overflow:auto;padding:4px 6px 10px}
+.grp h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--mut);margin:9px 2px 4px;font-weight:600}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ht{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;padding:5px 2px 4px;font-size:10.5px;line-height:1.12;text-align:center;min-height:50px;white-space:normal}
+.ht svg{width:28px;height:22px;flex:none}
+.ht.on svg *{filter:brightness(.25)}
+#centro{display:flex;flex-direction:column;min-width:0;min-height:0}
+#pest{display:flex;gap:4px;padding:5px 6px;background:var(--pan);border-bottom:1px solid var(--bor);overflow-x:auto;align-items:center;flex:none}
+.pe{max-width:200px;overflow:hidden;text-overflow:ellipsis}
+#mas{position:relative}
+.menu{display:none;position:absolute;z-index:30;background:#202020;border:1px solid #555;border-radius:6px;padding:4px;flex-direction:column;gap:3px;min-width:200px}
+.menu.on{display:flex}.menu button{text-align:left}
+#zona{position:relative;flex:1;min-height:0;overflow:hidden}
+#lienzo{position:absolute;inset:0;width:100%;height:100%;background:#fbfbf8;touch-action:none;user-select:none;-webkit-user-select:none;display:block}
+#vacio{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);color:#8c8c86;font-size:15px;text-align:center;pointer-events:none;line-height:1.5}
+#pista{position:absolute;left:8px;bottom:8px;background:rgba(22,22,22,.86);color:#ddd;padding:5px 10px;border-radius:6px;font-size:12px;pointer-events:none;max-width:min(62%, calc(100% - 330px))}
+#pista b{color:#ff8a7a}
+#zui{position:absolute;right:8px;bottom:8px;display:flex;gap:4px;align-items:center;background:rgba(22,22,22,.86);padding:4px;border-radius:7px}
+#zui span{min-width:46px;text-align:center;font-size:12px;color:#ccc}
+#lado{background:var(--pan);border-left:1px solid var(--bor);display:flex;flex-direction:column;min-height:0}
+#props{padding:8px 12px 12px;overflow:auto;flex:1 1 62%;border-bottom:1px solid var(--bor)}
+#props h2,#lista h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--acc2);margin:4px 0 8px}
+#lista{padding:6px 10px;overflow:auto;flex:1 1 38%}
+.f{display:grid;grid-template-columns:104px minmax(0,1fr);gap:6px;align-items:center;margin:6px 0}
+.f>label{color:var(--mut);font-size:12px}
+.f input[type=text],.f input:not([type]){width:100%}
+.f select{width:100%}
+.fila{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chip{width:22px;height:22px;padding:0;border-radius:50%;border:2px solid #555}
+.chip.on{border-color:#fff;box-shadow:0 0 0 2px var(--acc)}
+.mini{padding:2px 7px;font-size:12px}
+.chk{display:flex;gap:6px;align-items:center;color:var(--txt);font-size:12.5px;cursor:pointer}
+.info{background:#151515;border:1px solid #333;border-radius:6px;padding:7px 9px;color:#cfcfcf;font-size:12px;margin:8px 0;line-height:1.45}
+.info b{color:var(--acc2)}.info .mal{color:#ff8a7a;font-weight:700}
+.nota{color:var(--mut);font-size:11.5px;line-height:1.4;margin:6px 0}
+.acc{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.it{display:flex;gap:6px;align-items:center;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:12.5px;border:1px solid transparent}
+.it:hover{background:#262626}.it.on{border-color:var(--acc);background:#2a2418}
+.it i{font-style:normal;color:var(--mut);font-size:11px;margin-left:auto}
+.it .p{width:10px;height:10px;border-radius:50%;flex:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;z-index:60}
+.modal.on{display:flex}
+.caja{background:#1e1e1e;border:1px solid #474747;border-radius:9px;max-width:820px;width:92vw;max-height:88vh;overflow:auto;padding:18px 24px 20px}
+.caja h2{color:var(--acc2);font-size:17px;margin:4px 0 10px}
+.caja h3{color:var(--acc2);font-size:13.5px;margin:16px 0 6px}
+.caja p,.caja li{line-height:1.5;color:#d8d8d8}
+.caja ul{padding-left:20px;margin:4px 0}
+.caja kbd{background:#2c2c2c;border:1px solid #555;border-radius:4px;padding:0 5px;font-size:12px}
+#dlgCaja{max-width:460px}
+#dlgBtns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#lienzo .el{cursor:move}
+#lienzo .bloq{pointer-events:none}
+#lienzo .cono{pointer-events:none}
+#lienzo .eti{cursor:move}
+#lienzo .eti text{pointer-events:auto}
+#lienzo text{pointer-events:none}
+#lienzo .h{cursor:pointer}
+#lienzo .hrot,#lienzo .hpunta{cursor:grab}
+#lienzo .hres{cursor:nwse-resize}
+#lienzo.dibujando,#lienzo.colocando{cursor:crosshair}
+#lienzo.mano{cursor:grab}
+#nota{flex-basis:100%;display:none;align-items:center;gap:12px;margin:2px 0 0;padding:6px 10px;background:#3a2f1c;border:1px solid #8a6a2c;border-radius:6px;color:var(--acc2);font-size:12.5px;line-height:1.35}
+#nota.on{display:flex}
+#nota b{color:#fff}
+#nota button{margin-left:auto;flex:none}
+button.pend{border-color:var(--acc);color:#fff}
+button.pend::after{content:"";display:inline-block;width:7px;height:7px;margin-left:6px;border-radius:50%;background:var(--acc);vertical-align:1px}
+#aviso{position:fixed;left:50%;top:58px;transform:translateX(-50%);background:#3a2f1c;border:1px solid #8a6a2c;color:var(--acc2);padding:7px 14px;border-radius:7px;z-index:70;display:none;max-width:70vw}
+#aviso.on{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+<header>
+  <h1>REA · Editor de plantas de cámara</h1>
+  <input id="tit" placeholder="Título del trabajo" title="Título que aparece en la exportación">
+  <input id="aut" placeholder="Nombres" title="Nombres de la pareja o del equipo">
+  <select id="sen" title="Formato del sensor: decide el ángulo de cada óptica"></select>
+  <span class="sep"></span>
+  <button id="bDes" title="Deshacer (Ctrl+Z)">Deshacer</button>
+  <button id="bReh" title="Rehacer (Ctrl+Y)">Rehacer</button>
+  <button id="bNue" title="Empezar una planta nueva">Nuevo</button>
+  <button id="bAbr" title="Abrir un archivo .planta.json">Abrir</button>
+  <button id="bGua" title="Guardar la planta en un archivo para seguir en otro ordenador">Guardar</button>
+  <button id="bPng" class="pri" title="Descargar la hoja que estáis viendo como imagen">PNG</button>
+  <button id="bPdf" class="pri" title="Descargar todas las hojas en un PDF, una por página">PDF</button>
+  <button id="bAyu">Ayuda</button>
+  <div id="nota" role="status"><span id="notaTxt"></span><button id="notaOk">Entendido</button></div>
+</header>
+<aside id="herr"></aside>
+<main id="centro">
+  <div id="pest"></div>
+  <div id="zona">
+    <svg id="lienzo" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="pm" width="40" height="40" patternUnits="userSpaceOnUse"><path id="pmL" d="M40 0H0V40" fill="none" stroke="#e8e8e2" stroke-width="1"/></pattern>
+        <pattern id="pM" width="200" height="200" patternUnits="userSpaceOnUse"><rect width="200" height="200" fill="url(#pm)"/><path id="pML" d="M200 0H0V200" fill="none" stroke="#d6d6ce" stroke-width="1.5"/></pattern>
+        <g id="defsImg"></g>
+      </defs>
+      <g id="vista">
+        <rect id="rej" fill="url(#pM)"/>
+        <g id="capaEls"></g>
+        <g id="capaSel"></g>
+      </g>
+      <rect id="lazo" fill="rgba(30,136,229,.08)" stroke="#1e88e5" stroke-dasharray="4 3" display="none"/>
+    </svg>
+    <div id="vacio">Elegid una herramienta a la izquierda<br>y haced clic aquí para colocarla.</div>
+    <div id="pista"></div>
+    <div id="zui">
+      <button class="mini" id="zMen" title="Alejar (-)">−</button><span id="zVal">100 %</span><button class="mini" id="zMas" title="Acercar (+)">+</button>
+      <button class="mini" id="zAju" title="Encuadrar todo (0)">Ajustar</button>
+      <button class="mini on" id="bRej" title="Cuadrícula de 1 m">Cuadrícula</button>
+      <button class="mini" id="bIma" title="Ajustar posiciones a la cuadrícula de 0,5 m">Imán</button>
+    </div>
+  </div>
+</main>
+<aside id="lado">
+  <section id="props"></section>
+  <section id="lista"></section>
+</aside>
+</div>
+
+<div class="modal" id="ayuda"><div class="caja">
+  <h2>Cómo funciona el editor</h2>
+  <p>Sirve para dibujar la planta de cámara de una secuencia: el espacio, los personajes y sus recorridos, los vehículos, los ejes y cada emplazamiento de cámara con su óptica. Una planta puede tener varias hojas, por ejemplo la calle y el interior del coche.</p>
+  <h3>Lo básico</h3>
+  <ul>
+    <li>Elegid una herramienta a la izquierda y haced clic en la planta para colocarla. Con <kbd>Mayús</kbd> pulsada podéis colocar varias seguidas.</li>
+    <li>Arrastrad un elemento para moverlo. El círculo pequeño que aparece encima lo gira (con <kbd>Mayús</kbd>, de 15 en 15 grados); también gira con <kbd>R</kbd>. El cuadrado azul de la esquina cambia el tamaño.</li>
+    <li><kbd>Supr</kbd> borra, <kbd>Ctrl</kbd>+<kbd>Z</kbd> deshace, <kbd>Ctrl</kbd>+<kbd>D</kbd> duplica, <kbd>Ctrl</kbd>+<kbd>C</kbd> y <kbd>Ctrl</kbd>+<kbd>V</kbd> copian y pegan, también entre hojas. <kbd>Mayús</kbd>+clic o un recuadro arrastrado en vacío seleccionan varios.</li>
+    <li>La rueda del ratón o el pellizco acercan y alejan. Para desplazar la vista, usad «Mover la vista», la barra espaciadora pulsada o dos dedos en el panel táctil. «Ajustar» encuadra todo.</li>
+    <li>Los datos de cada elemento se cambian en el panel de la derecha. Debajo está la lista de todo lo que hay en la hoja.</li>
+    <li>Si un nombre o una etiqueta se solapa con otra, arrastradla: el símbolo no se mueve y la etiqueta queda unida a él con una línea fina. «Devolver la etiqueta a su sitio», en el panel, la recoloca.</li>
+  </ul>
+  <h3>Cámaras</h3>
+  <ul>
+    <li>Un triángulo por emplazamiento, no por plano. Si la cámara cambia de óptica o de escala sin moverse, es la misma cámara: escribid todos sus planos en «Planos».</li>
+    <li>El punto azul del final del cono sirve para girar la cámara y alargar el cono. El ángulo del cono depende de la óptica y del sensor elegido arriba (Super 35 por defecto).</li>
+    <li>Si elegís a quién encuadra, el editor calcula la escala aproximada del plano por la distancia y la óptica, y avisa si el personaje queda fuera del cono.</li>
+    <li>Los conos salen suaves para que no tapen la planta. Con nada seleccionado, en el panel de la hoja podéis ponerlos cortos, marcados u ocultarlos. La cámara seleccionada siempre muestra el suyo.</li>
+    <li>Si la cámara se mueve durante el plano, dibujad su recorrido con «Movimiento de cámara» y poned otra cámara con el mismo número en la posición de llegada, marcada como «posición final».</li>
+    <li>Una cámara montada en un vehículo se dibuja pegada a él, con el tipo «montada en vehículo». En un mapa de recorrido no hace falta repetirla a lo largo del camino.</li>
+  </ul>
+  <h3>Personajes, vehículos y recorridos</h3>
+  <ul>
+    <li>El triángulo pequeño del personaje marca hacia dónde mira. Para un desplazamiento, dibujad la posición inicial, el recorrido con flecha y la posición final marcada como «posición final».</li>
+    <li>Los recorridos se dibujan con un clic en cada punto; doble clic o <kbd>Intro</kbd> para terminar y <kbd>Esc</kbd> para cancelar. Después, cada punto se puede arrastrar; doble clic sobre el trazo añade un punto y <kbd>Alt</kbd>+clic en un punto lo quita.</li>
+  </ul>
+  <h3>Ejes</h3>
+  <ul>
+    <li>Con «Eje» trazad la línea de miradas entre dos personajes o la trayectoria de un vehículo. Si el coche gira, el eje gira con él: dibujadlo con varios puntos o en curva.</li>
+    <li>En el panel del eje podéis sombrear el lado que no se cruza. Entonces el editor marca en rojo las cámaras que quedan en ese lado.</li>
+  </ul>
+  <h3>Hojas</h3>
+  <p>Una hoja por espacio. Si un lugar es demasiado pequeño para verse bien en la planta general, como el interior de un coche, dibujadlo ampliado en otra hoja o en un «Detalle ampliado» colocado en una zona vacía de la misma hoja; marcad el sitio en la planta general con una «Llamada» de la misma letra. Dentro del detalle, el editor divide las distancias por la ampliación al calcular los tamaños de plano. Con nada seleccionado, el panel de la derecha muestra los datos de la hoja: nombre, descripción y tamaño de los símbolos (útil para un mapa de recorrido grande).</p>
+  <h3>Guardar y entregar</h3>
+  <ul>
+    <li id="ayGua">Todo se guarda solo en este navegador. Para seguir en otro ordenador, «Guardar» descarga un archivo <i>.planta.json</i> que se abre con «Abrir».</li>
+    <li>«PNG» descarga la hoja que estáis viendo. «PDF» descarga todas las hojas, una por página, con la tabla de cámaras y la leyenda.</li>
+  </ul>
+  <div class="acc"><button id="bEje">Añadir una hoja de ejemplo</button><button id="bCieA" class="pri">Cerrar</button></div>
+</div></div>
+
+<div class="modal" id="dlg"><div class="caja" id="dlgCaja"><p id="dlgTxt"></p><div id="dlgBtns"><button id="dlgNo">Cancelar</button><button id="dlgSi" class="pri">Aceptar</button></div></div></div>
+<div id="aviso"></div>
+<input type="file" id="fArch" accept=".json,application/json" hidden>
+<input type="file" id="fImg" accept="image/*" hidden>
+<svg id="med" width="10" height="10" style="position:absolute;left:-20000px;top:-20000px;opacity:0" xmlns="http://www.w3.org/2000/svg"><g id="medG"></g></svg>
+
+<script>
+/* REA · Editor de plantas de cámara, versión 4. Sin dependencias externas: funciona abriendo el archivo en el navegador, sin conexión. */
+(function () {
+"use strict";
+var PX = 40, NS = "http://www.w3.org/2000/svg", CLAVE = "rea-editor-plantas-v3";
+function $(s) { return document.querySelector(s); }
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+function f2(n) { return Math.round(n * 10) / 10; }
+function r1(n) { return Math.round(n * 10) / 10; }
+function rad(d) { return d * Math.PI / 180; }
+function deg(r) { return r * 180 / Math.PI; }
+function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function fmt(n, d) { if (d == null) d = 1; var p = Math.pow(10, d); return (Math.round(n * p) / p).toFixed(d).replace(".", ","); }
+function normA(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; }
+function normDeg(a) { a = a % 360; if (a > 180) a -= 360; if (a <= -180) a += 360; return a; }
+function oscurece(hex, k) {
+  var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || "");
+  if (!m) return "#444444";
+  var c = [1, 2, 3].map(function (i) { return Math.round(parseInt(m[i], 16) * k); });
+  return "#" + c.map(function (v) { return ("0" + clamp(v, 0, 255).toString(16)).slice(-2); }).join("");
+}
+
+var SENS = {
+  s35: { n: "Super 35 (24,9 mm de ancho)", c: "Super 35", w: 24.9, h: 14.0 },
+  ff: { n: "Full frame (36 mm de ancho)", c: "full frame", w: 36, h: 20.25 },
+  m43: { n: "Micro 4/3 (17,3 mm de ancho)", c: "Micro 4/3", w: 17.3, h: 9.73 }
+};
+var OPTICAS = [14, 18, 24, 35, 50, 85, 135, 200];
+var COLCAM = "#1f5fa8";
+var PALETA = ["#2e8b57", "#c0392b", "#7d4bb5", "#d9822b", "#1f5fa8", "#1b8a8a", "#555555", "#b8860b"];
+var PALVEH = ["#c0392b", "#1f5fa8", "#2e8b57", "#333333", "#d9822b", "#7d4bb5", "#9e9e9e", "#f4f4f4"];
+var PALEDI = ["#dcd7cf", "#cfd8dc", "#e6dccb", "#d7ccc8", "#c8e6c9", "#eeeeee"];
+var VEH = {
+  coche: { n: "Coche", L: 4.5, W: 1.8 }, policia: { n: "Coche de policía", L: 4.8, W: 1.85 },
+  furgoneta: { n: "Furgoneta", L: 5.2, W: 2.0 }, camion: { n: "Camión", L: 12, W: 2.5 },
+  autobus: { n: "Autobús", L: 12, W: 2.55 }, moto: { n: "Moto", L: 2.1, W: 0.8 }, heli: { n: "Helicóptero", L: 12, W: 2.4 }
+};
+var MUEB = {
+  mesa: { n: "Mesa", w: 1.6, h: 0.9 }, mesar: { n: "Mesa redonda", w: 1.2, h: 1.2 }, silla: { n: "Silla", w: 0.46, h: 0.46 },
+  sillon: { n: "Sillón", w: 0.9, h: 0.85 }, sofa: { n: "Sofá", w: 2.0, h: 0.9 }, cama: { n: "Cama", w: 2.0, h: 1.5 },
+  mostrador: { n: "Mostrador o barra", w: 3.0, h: 0.7 }, escritorio: { n: "Escritorio", w: 1.4, h: 0.7 }, columna: { n: "Columna", w: 0.5, h: 0.5 },
+  arbol: { n: "Árbol", w: 3.0, h: 3.0 }, farola: { n: "Farola", w: 0.5, h: 0.5 }, bancoc: { n: "Banco de calle", w: 1.8, h: 0.55 }
+};
+var TAM = [[0.35, "PPP", "primerísimo primer plano"], [0.6, "PP", "primer plano"], [0.9, "PMC", "plano medio corto"], [1.3, "PM", "plano medio"],
+  [1.75, "PA", "plano americano"], [2.3, "PE", "plano entero"], [Infinity, "PG", "plano general"]];
+var TIPOS = { fija: "fija (trípode)", mano: "en mano", steadicam: "steadicam o estabilizador", grua: "grúa o brazo", dron: "dron o aérea", vehiculo: "montada en vehículo", travelling: "travelling o dolly" };
+var KP = {
+  eje: { n: "Eje", c: "#e07b00", g: 3, disc: true, fl: "no" },
+  per: { n: "Recorrido de personaje", c: "#2e8b57", g: 3, disc: false, fl: "fin" },
+  veh: { n: "Recorrido de vehículo", c: "#c0392b", g: 4, disc: false, fl: "fin" },
+  cam: { n: "Movimiento de cámara", c: "#1f5fa8", g: 3, disc: true, fl: "fin" },
+  linea: { n: "Línea", c: "#333333", g: 2, disc: false, fl: "no" },
+  flecha: { n: "Flecha", c: "#333333", g: 2, disc: false, fl: "fin" },
+  muro: { n: "Pared", c: "#4a4a4a", g: 8, disc: false, fl: "no" }
+};
+var CAPA = { img: 0, calle: 1, cruce: 1, aparc: 1, det: 1.5, cebra: 2, edi: 2, int: 2, mue: 3, puerta: 4, vent: 4, path: 5, veh: 6, per: 7, cam: 8, txt: 9, lla: 9 };
+var REDIM = { det: 1, int: 1, edi: 1, calle: 1, cruce: 1, cebra: 1, aparc: 1, puerta: 1, vent: 1, mue: 1, img: 1, txt: 1 };
+var NOMBRES = { cam: "Cámara", per: "Personaje", veh: "Vehículo", int: "Interior de coche", edi: "Edificio o manzana", calle: "Calle", cruce: "Cruce",
+  cebra: "Paso de cebra", aparc: "Aparcamiento", puerta: "Puerta", vent: "Ventana", mue: "Objeto", img: "Imagen de fondo", txt: "Texto", path: "Trazo", det: "Detalle ampliado", lla: "Llamada a un detalle" };
+
+/* ------------------------------------------------------------ paleta */
+var ICO = {
+  sel: '<path d="M9 2 9 20 13 16 16 22 19 21 16 15 22 15Z" fill="#ddd"/>',
+  mano: '<path d="M14 1 17.5 5H15.3V10.7H21V8.5L25 12 21 15.5V13.3H15.3V19H17.5L14 23 10.5 19H12.7V13.3H7V15.5L3 12 7 8.5V10.7H12.7V5H10.5Z" fill="#ddd"/>',
+  cam: '<path d="M13 12 26 4V20Z" fill="#5b8fd6" opacity=".35"/><rect x="2" y="7.5" width="9" height="9" rx="1.5" fill="#5b8fd6"/><path d="M11 9.5 14 8V16L11 14.5Z" fill="#5b8fd6"/>',
+  per: '<circle cx="12" cy="12" r="6.5" fill="#4caf7a"/><path d="M18 8.5 23.5 12 18 15.5Z" fill="#4caf7a"/>',
+  "path:eje": '<line x1="2" y1="19" x2="26" y2="5" stroke="#f0a030" stroke-width="2.5" stroke-dasharray="4 3"/>',
+  "path:per": '<path d="M3 19C9 3 15 21 22 8" fill="none" stroke="#4caf7a" stroke-width="2.5"/><path d="M24.5 4.5 23.5 12 18.5 9Z" fill="#4caf7a"/>',
+  "path:veh": '<path d="M3 19C9 3 15 21 22 8" fill="none" stroke="#e05d4f" stroke-width="3"/><path d="M24.5 4.5 23.5 12 18.5 9Z" fill="#e05d4f"/>',
+  "path:cam": '<path d="M3 17H21" fill="none" stroke="#5b8fd6" stroke-width="2.5" stroke-dasharray="4 3"/><path d="M26 17 20 13.5V20.5Z" fill="#5b8fd6"/>',
+  "veh:coche": '<rect x="3" y="7" width="22" height="10" rx="3" fill="#e05d4f"/><path d="M15 8.5 18 9V15L15 15.5Z" fill="#2b3440"/>',
+  "veh:policia": '<rect x="3" y="7" width="22" height="10" rx="3" fill="#eee" stroke="#222"/><rect x="12" y="7.8" width="2.5" height="4.2" fill="#2f6fe0"/><rect x="12" y="12" width="2.5" height="4.2" fill="#e03030"/>',
+  "veh:furgoneta": '<rect x="2" y="6.5" width="24" height="11" rx="2" fill="#5b8fd6"/><path d="M19 8 21 8.5V15.5L19 16Z" fill="#2b3440"/>',
+  "veh:camion": '<rect x="1" y="6.5" width="18" height="11" rx="1" fill="#cfc8bc"/><rect x="20" y="7" width="7" height="10" rx="1.5" fill="#e05d4f"/>',
+  "veh:autobus": '<rect x="1" y="6.5" width="26" height="11" rx="2" fill="#e0b13a"/><rect x="3" y="8" width="20" height="2" fill="#fff" opacity=".6"/><rect x="3" y="14" width="20" height="2" fill="#fff" opacity=".6"/>',
+  "veh:moto": '<ellipse cx="14" cy="12" rx="10" ry="3.5" fill="#e05d4f"/><line x1="19" y1="6" x2="19" y2="18" stroke="#ddd" stroke-width="2"/><circle cx="13" cy="12" r="3.3" fill="#333"/>',
+  "veh:heli": '<circle cx="16" cy="12" r="10" fill="none" stroke="#bbb" stroke-dasharray="3 2"/><ellipse cx="16" cy="12" rx="5" ry="4" fill="#5b8fd6"/><rect x="2" y="11" width="10" height="2" fill="#5b8fd6"/>',
+  int: '<rect x="2" y="4" width="24" height="16" rx="6" fill="none" stroke="#e05d4f" stroke-width="2"/><rect x="12" y="6" width="5" height="5" rx="1" fill="#bbb"/><rect x="12" y="13" width="5" height="5" rx="1" fill="#bbb"/><rect x="5" y="6.5" width="4" height="11" rx="1" fill="#bbb"/>',
+  edi: '<rect x="3" y="3" width="22" height="18" fill="#bdb6aa"/><rect x="6" y="6" width="4" height="4" fill="#8f877a"/><rect x="13" y="6" width="4" height="4" fill="#8f877a"/><rect x="6" y="13" width="4" height="4" fill="#8f877a"/>',
+  calle: '<rect x="1" y="6" width="26" height="12" fill="#9e9e9e"/><path d="M2 12H27" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 3"/>',
+  cruce: '<path d="M10 1H18V8H27V16H18V23H10V16H1V8H10Z" fill="#9e9e9e"/><path d="M14 1V8M14 16V23M1 12H10M18 12H27" stroke="#fff" stroke-width="1.2" stroke-dasharray="2.5 2"/>',
+  cebra: '<rect x="3" y="4" width="22" height="2.4" fill="#ddd"/><rect x="3" y="9" width="22" height="2.4" fill="#ddd"/><rect x="3" y="14" width="22" height="2.4" fill="#ddd"/><rect x="3" y="19" width="22" height="2.4" fill="#ddd"/>',
+  aparc: '<rect x="2" y="3" width="24" height="18" fill="#9e9e9e"/><path d="M8 3V9M14 3V9M20 3V9M8 21V15M14 21V15M20 21V15" stroke="#fff" stroke-width="1.3"/>',
+  "path:muro": '<path d="M3 19V5H25" fill="none" stroke="#bbb" stroke-width="4"/>',
+  puerta: '<path d="M4 20H24" stroke="#bbb" stroke-width="2"/><path d="M6 20V6" stroke="#d9a35a" stroke-width="2"/><path d="M6 6A14 14 0 0 1 20 20" fill="none" stroke="#d9a35a" stroke-dasharray="2 2"/>',
+  vent: '<rect x="2" y="9" width="24" height="6" fill="#bcd8ef" stroke="#5b8db8"/><path d="M2 12H26" stroke="#5b8db8"/>',
+  "mue:mesa": '<rect x="4" y="6" width="20" height="12" rx="1" fill="#d9c7a7"/>',
+  "mue:mesar": '<circle cx="14" cy="12" r="8" fill="#d9c7a7"/>',
+  "mue:silla": '<rect x="9" y="7" width="10" height="10" rx="1" fill="#c9b18e"/><rect x="9" y="5" width="10" height="3" fill="#8d7553"/>',
+  "mue:sillon": '<rect x="6" y="6" width="16" height="13" rx="2" fill="#a7a7c9"/><rect x="6" y="4" width="16" height="4" rx="1" fill="#7b7ba4"/>',
+  "mue:sofa": '<rect x="2" y="7" width="24" height="11" rx="2" fill="#a7a7c9"/><rect x="2" y="5" width="24" height="4" rx="1" fill="#7b7ba4"/>',
+  "mue:cama": '<rect x="3" y="4" width="22" height="16" rx="1" fill="#e9e1d3" stroke="#a89f94"/><rect x="5" y="6" width="5" height="5" rx="1" fill="#fff"/><rect x="5" y="13" width="5" height="5" rx="1" fill="#fff"/>',
+  "mue:mostrador": '<rect x="1" y="8" width="26" height="8" fill="#b89b72"/>',
+  "mue:escritorio": '<rect x="3" y="7" width="22" height="10" fill="#c9b18e"/><rect x="11" y="17" width="6" height="5" fill="#8d7553"/>',
+  "mue:columna": '<circle cx="14" cy="12" r="6" fill="#aaa" stroke="#777"/>',
+  "mue:arbol": '<circle cx="14" cy="12" r="9" fill="#8fbf74"/><circle cx="14" cy="12" r="2" fill="#6d4c2f"/>',
+  "mue:farola": '<circle cx="14" cy="12" r="8" fill="#f5e7a1" opacity=".5"/><circle cx="14" cy="12" r="2.5" fill="#666"/>',
+  "mue:bancoc": '<rect x="3" y="9" width="22" height="6" fill="#b89b72"/><path d="M3 12H25" stroke="#8d7553"/>',
+  txt: '<text x="14" y="18.5" text-anchor="middle" font-size="17" font-weight="700" fill="#ddd" font-family="Arial">T</text>',
+  "path:linea": '<line x1="3" y1="19" x2="25" y2="5" stroke="#ddd" stroke-width="2"/>',
+  "path:flecha": '<line x1="3" y1="19" x2="21" y2="7.5" stroke="#ddd" stroke-width="2"/><path d="M26 4.5 23.5 11.5 18.5 4.8Z" fill="#ddd"/>',
+  det: '<rect x="3" y="5" width="22" height="16" rx="1.5" fill="none" stroke="#ddd" stroke-width="1.6" stroke-dasharray="3 2"/><circle cx="5" cy="5" r="4.4" fill="#ddd"/><text x="5" y="7.4" text-anchor="middle" font-size="6.5" font-weight="700" fill="#222" font-family="Arial">A</text>',
+  lla: '<circle cx="14" cy="12" r="8" fill="none" stroke="#ddd" stroke-width="1.8"/><text x="14" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="#ddd" font-family="Arial">A</text>',
+  img: '<rect x="2" y="3" width="24" height="18" rx="1.5\" fill="none" stroke="#ddd" stroke-width="1.6"/><path d="M4 19 11 11 16 16 19 13 24 19Z" fill="#999"/><circle cx="20" cy="8" r="2" fill="#999"/>'
+};
+var PAL = [
+  { g: "Herramientas", it: [["sel", "Seleccionar"], ["mano", "Mover la vista"]] },
+  { g: "Rodaje", it: [["cam", "Cámara"], ["per", "Personaje"], ["path:eje", "Eje"], ["path:per", "Recorrido de personaje"], ["path:veh", "Recorrido de vehículo"], ["path:cam", "Movimiento de cámara"]] },
+  { g: "Vehículos", it: [["veh:coche", "Coche"], ["veh:policia", "Policía"], ["veh:furgoneta", "Furgoneta"], ["veh:camion", "Camión"], ["veh:autobus", "Autobús"], ["veh:moto", "Moto"], ["veh:heli", "Helicóptero"], ["int", "Interior de coche"]] },
+  { g: "Calle y edificios", it: [["edi", "Edificio o manzana"], ["calle", "Calle"], ["cruce", "Cruce"], ["cebra", "Paso de cebra"], ["aparc", "Aparcamiento"], ["mue:arbol", "Árbol"], ["mue:farola", "Farola"], ["mue:bancoc", "Banco de calle"]] },
+  { g: "Interiores", it: [["path:muro", "Pared"], ["puerta", "Puerta"], ["vent", "Ventana"], ["mue:mesa", "Mesa"], ["mue:mesar", "Mesa redonda"], ["mue:silla", "Silla"], ["mue:sillon", "Sillón"], ["mue:sofa", "Sofá"], ["mue:cama", "Cama"], ["mue:mostrador", "Mostrador"], ["mue:escritorio", "Escritorio"], ["mue:columna", "Columna"]] },
+  { g: "Anotaciones", it: [["txt", "Texto"], ["path:linea", "Línea"], ["path:flecha", "Flecha"], ["det", "Detalle ampliado"], ["lla", "Llamada a un detalle"], ["img", "Imagen de fondo"]] }
+];
+var NOMHERR = {}; PAL.forEach(function (g) { g.it.forEach(function (i) { NOMHERR[i[0]] = i[1]; }); });
+
+/* ------------------------------------------------------------ estado */
+var S, V, sel = new Set(), herr = "sel", dib = null, modo = null, espacio = false, iman = false, rejOn = true, porta = null, ultimoP = [0, 0];
+var hist = [], hi = -1;
+function nid() { return "h" + Math.random().toString(36).slice(2, 9); }
+function nuevaHoja(nombre) { return { id: nid(), nombre: nombre, desc: "", sim: 1, conos: "sutil", els: [], vista: null }; }
+function nuevoEstado() { return { app: "rea-editor-plantas", v: 3, titulo: "", autores: "", sensor: "s35", hojas: [nuevaHoja("Hoja 1")], hoja: 0, sig: 1, imgs: {} }; }
+function hoja() { return S.hojas[S.hoja]; }
+function sens() { return SENS[S.sensor] || SENS.s35; }
+function hfov(f) { return 2 * Math.atan(sens().w / (2 * Math.max(1, f))); }
+function tipoOpt(f) { var q = f / sens().w; return q < 0.8 ? "gran angular" : (q <= 1.9 ? "normal" : "teleobjetivo"); }
+function porId(id, h) { h = h || hoja(); for (var i = 0; i < h.els.length; i++) if (h.els[i].id === id) return h.els[i]; return null; }
+function selEls() { return hoja().els.filter(function (e) { return sel.has(e.id); }); }
+function sigNum(h) { var m = 0; h.els.forEach(function (e) { if (e.t === "cam") { var n = parseInt(e.n, 10); if (!isNaN(n)) m = Math.max(m, n); } }); return m + 1; }
+
+function crea(t, x, y, o) {
+  o = o || {};
+  var h = hoja(), e = { id: "e" + (S.sig++), t: t, x: x, y: y, r: 0, z: S.sig, lock: false, ghost: false };
+  if (t === "cam") { e.n = String(sigNum(h)); e.planos = ""; e.f = 35; e.d = (h.sim || 1) < 1 ? 2 : 8; e.tipo = "fija"; e.obj = ""; e.eti = true; e.notas = ""; e.color = COLCAM; e.r = -90; }
+  else if (t === "per") { var np = h.els.filter(function (q) { return q.t === "per"; }).length; e.nombre = "Personaje " + (np + 1); e.color = PALETA[np % PALETA.length]; }
+  else if (t === "veh") { e.vt = o.vt || "coche"; e.color = e.vt === "policia" ? "#f4f4f4" : (e.vt === "autobus" ? "#e0b13a" : (e.vt === "camion" || e.vt === "furgoneta" || e.vt === "heli" ? "#1f5fa8" : "#c0392b")); e.nombre = ""; }
+  else if (t === "int") { e.w = 4.6; e.h = 1.85; e.volante = "izq"; e.color = "#c0392b"; e.nombre = ""; }
+  else if (t === "edi") { e.w = 20; e.h = 12; e.nombre = ""; e.fs = 22; e.color = PALEDI[0]; }
+  else if (t === "calle") { e.w = 40; e.h = 8; e.carriles = 2; e.aceras = true; e.acera = 3; e.centro = "disc"; e.nombre = ""; }
+  else if (t === "cruce") { e.w = 40; e.h = 8; e.aceras = true; e.acera = 3; e.pasos = true; }
+  else if (t === "cebra") { e.w = 4; e.h = 8; }
+  else if (t === "aparc") { e.w = 20; e.h = 12; e.nombre = "Aparcamiento"; }
+  else if (t === "puerta") { e.w = 1.2; e.abre = "izq"; e.nombre = ""; }
+  else if (t === "vent") { e.w = 3; e.nombre = ""; }
+  else if (t === "mue") { e.mt = o.mt || "mesa"; e.w = MUEB[e.mt].w; e.h = MUEB[e.mt].h; e.nombre = ""; }
+  else if (t === "img") { e.ik = o.ik; e.w = o.w; e.h = o.h; e.op = 0.6; }
+  else if (t === "txt") { e.texto = "Texto"; e.fs = 20; e.color = "#222222"; e.neg = true; e.fondo = false; }
+  else if (t === "det") { var nd = h.els.filter(function (q) { return q.t === "det"; }).length; e.letra = String.fromCharCode(65 + (nd % 26)); e.titulo = ""; e.esc = 2; e.w = 12; e.h = 6; e.fondo = true; }
+  else if (t === "lla") { var ld = h.els.filter(function (q) { return q.t === "det"; }); e.letra = ld.length ? ld[ld.length - 1].letra : "A"; }
+  else if (t === "path") { var K = KP[o.k]; e.k = o.k; e.pts = o.pts; e.suave = false; e.color = K.c; e.g = K.g; e.disc = K.disc; e.fl = K.fl; e.nombre = o.k === "eje" ? "Eje" : ""; e.lado = "no"; e.x = 0; e.y = 0; }
+  return e;
+}
+function ordenados(els) { return els.slice().sort(function (a, b) { return (CAPA[a.t] - CAPA[b.t]) || ((a.t === "path" && a.k === "muro" ? 0 : 1) - (b.t === "path" && b.k === "muro" ? 0 : 1)) || (a.z - b.z); }); }
+
+/* ------------------------------------------------------------ geometría de trazos */
+function bez(P, i) {
+  var p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || P[i + 1];
+  return [p1, [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6], [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6], p2];
+}
+function dPath(P, suave) {
+  if (!P || P.length < 2) return "";
+  var d = "M" + f2(P[0][0]) + " " + f2(P[0][1]), i;
+  if (!suave || P.length < 3) { for (i = 1; i < P.length; i++) d += "L" + f2(P[i][0]) + " " + f2(P[i][1]); return d; }
+  for (i = 0; i < P.length - 1; i++) { var b = bez(P, i); d += "C" + f2(b[1][0]) + " " + f2(b[1][1]) + " " + f2(b[2][0]) + " " + f2(b[2][1]) + " " + f2(b[3][0]) + " " + f2(b[3][1]); }
+  return d;
+}
+function muestras(e) {
+  var P = e.pts;
+  if (!P || P.length < 2) return (P || []).slice();
+  if (!e.suave || P.length < 3) return P.map(function (p) { return p.slice(); });
+  var out = [P[0].slice()];
+  for (var i = 0; i < P.length - 1; i++) {
+    var b = bez(P, i);
+    for (var k = 1; k <= 16; k++) {
+      var t = k / 16, u = 1 - t;
+      out.push([u * u * u * b[0][0] + 3 * u * u * t * b[1][0] + 3 * u * t * t * b[2][0] + t * t * t * b[3][0], u * u * u * b[0][1] + 3 * u * u * t * b[1][1] + 3 * u * t * t * b[2][1] + t * t * t * b[3][1]]);
+    }
+  }
+  return out;
+}
+function dirFin(M) { var n = M.length, a = M[n - 1]; for (var i = n - 2; i >= 0; i--) { var dx = a[0] - M[i][0], dy = a[1] - M[i][1], l = Math.hypot(dx, dy); if (l > 0.5) return [dx / l, dy / l]; } return [1, 0]; }
+function dirIni(M) { var a = M[0]; for (var i = 1; i < M.length; i++) { var dx = a[0] - M[i][0], dy = a[1] - M[i][1], l = Math.hypot(dx, dy); if (l > 0.5) return [dx / l, dy / l]; } return [-1, 0]; }
+function puntoMedio(M) {
+  var L = 0, i; for (i = 1; i < M.length; i++) L += Math.hypot(M[i][0] - M[i - 1][0], M[i][1] - M[i - 1][1]);
+  var acc = 0, half = L / 2;
+  for (i = 1; i < M.length; i++) {
+    var a = M[i - 1], b = M[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (acc + l >= half && l > 0) { var t = (half - acc) / l, dx = (b[0] - a[0]) / l, dy = (b[1] - a[1]) / l; return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, nx: -dy, ny: dx }; }
+    acc += l;
+  }
+  return { x: M[0][0], y: M[0][1], nx: 0, ny: -1 };
+}
+function proy(x, y, a, b) {
+  var dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1, t = clamp(((x - a[0]) * dx + (y - a[1]) * dy) / l2, 0, 1);
+  var px = a[0] + t * dx, py = a[1] + t * dy; return { d: Math.hypot(x - px, y - py), t: t, px: px, py: py };
+}
+function avisos(h) {
+  var ejes = h.els.filter(function (e) { return e.t === "path" && e.k === "eje" && e.lado && e.lado !== "no" && e.pts && e.pts.length > 1; }), w = {};
+  if (!ejes.length) return w;
+  var MM = ejes.map(function (e) { return { e: e, M: muestras(e) }; });
+  h.els.forEach(function (c) {
+    if (c.t !== "cam") return;
+    var best = null;
+    MM.forEach(function (q) {
+      for (var i = 0; i < q.M.length - 1; i++) {
+        var a = q.M[i], b = q.M[i + 1], r = proy(c.x, c.y, a, b);
+        if (!best || r.d < best.d) best = { d: r.d, cr: (b[0] - a[0]) * (c.y - a[1]) - (b[1] - a[1]) * (c.x - a[0]), lado: q.e.lado };
+      }
+    });
+    if (best) { var sg = best.cr > 1e-6 ? "a" : (best.cr < -1e-6 ? "b" : ""); if (sg && sg === best.lado) w[c.id] = true; }
+  });
+  return w;
+}
+/* Dentro de un «Detalle ampliado» las distancias reales son las dibujadas divididas por la ampliación. */
+function escalaEn(x, y, h) {
+  var k = 1;
+  h.els.forEach(function (q) { if (q.t !== "det" || !(+q.esc > 0)) return; var l = aLocal(q, [x, y]); if (Math.abs(l[0]) <= q.w * PX / 2 && Math.abs(l[1]) <= q.h * PX / 2) k = +q.esc; });
+  return k;
+}
+function estima(e, h) {
+  if (!e.obj) return null;
+  var p = porId(e.obj, h); if (!p || p.t !== "per") return null;
+  var k = escalaEn(e.x, e.y, h), dx = p.x - e.x, dy = p.y - e.y, d = Math.hypot(dx, dy) / PX / k, nom = p.nombre || "el personaje";
+  if (d < 0.05) return null;
+  var hf = hfov(e.f), dif = Math.abs(normA(Math.atan2(dy, dx) - rad(e.r)));
+  if (dif > hf / 2 + 0.02) return { corto: nom + ": fuera del cono", largo: nom + " queda fuera del cono de esta cámara.", fuera: true };
+  var hh = d * sens().h / e.f, t = TAM[TAM.length - 1];
+  for (var i = 0; i < TAM.length; i++) if (hh < TAM[i][0]) { t = TAM[i]; break; }
+  return { corto: "≈ " + t[1] + " de " + nom + " · " + fmt(d, 1) + " m", largo: "A " + fmt(d, 1) + " m" + (k !== 1 ? " reales (el detalle está ampliado ×" + fmt(k, k % 1 ? 1 : 0) + ")" : "") + " y con " + fmt(e.f, 0) + " mm, el cuadro mide unos " + fmt(hh, 2) + " m de alto a la distancia de " + nom + ": <b>" + t[2] + "</b> aproximado." };
+}
+
+/* ------------------------------------------------------------ dibujo */
+function halo(w) { return ' paint-order="stroke" stroke="#ffffff" stroke-width="' + f2(w) + '" stroke-linejoin="round"'; }
+function texto(x, y, lineas, o) {
+  var fs = o.fs, lh = fs * 1.18, t = '<text x="' + f2(x) + '" y="' + f2(y) + '" font-size="' + f2(fs) + '" font-family="Segoe UI, Arial, sans-serif" text-anchor="' + (o.anchor || "middle") + '" fill="' + (o.fill || "#222") + '"' + (o.w ? ' font-weight="' + o.w + '"' : "") + (o.base ? ' dominant-baseline="' + o.base + '"' : "") + (o.halo === false ? "" : halo(o.hw || fs * 0.3)) + ">";
+  lineas.forEach(function (l, i) { var c = typeof l === "string" ? { t: l } : l; t += '<tspan x="' + f2(x) + '" dy="' + (i ? f2(lh) : 0) + '"' + (c.fill ? ' fill="' + c.fill + '"' : "") + (c.w ? ' font-weight="' + c.w + '"' : "") + ">" + esc(c.t) + "</tspan>"; });
+  return t + "</text>";
+}
+function R(x, y, w, h, rx, fill, ex) { return '<rect x="' + f2(x) + '" y="' + f2(y) + '" width="' + f2(Math.max(0, w)) + '" height="' + f2(Math.max(0, h)) + '"' + (rx ? ' rx="' + f2(rx) + '"' : "") + ' fill="' + fill + '"' + (ex || "") + "/>"; }
+function P(pts, fill, ex) { return '<polygon points="' + pts.map(function (p) { return f2(p[0]) + "," + f2(p[1]); }).join(" ") + '" fill="' + fill + '"' + (ex || "") + "/>"; }
+function Ln(x1, y1, x2, y2, col, w, ex) { return '<line x1="' + f2(x1) + '" y1="' + f2(y1) + '" x2="' + f2(x2) + '" y2="' + f2(y2) + '" stroke="' + col + '" stroke-width="' + f2(w) + '"' + (ex || "") + "/>"; }
+function G(e, inner) { return '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ") rotate(" + f2(e.r) + ')">' + inner + "</g>"; }
+function etiquetaBajo(e, ext, s, txt, col) {
+  if (!txt) return "";
+  var y = e.y + ext + 15 * s;
+  return etiMov(e, s, e.x, e.y, ext * 0.8, e.x, y - 4 * s, texto(e.x, y, String(txt).split("\n"), { fs: 12 * s, fill: col || "#333", w: "700" }), col || "#333333");
+}
+/* Etiqueta que se puede arrastrar: el desplazamiento (lx, ly) se guarda en el elemento. Si se aparta, una línea fina la une al símbolo. */
+function etiMov(e, s, ox, oy, rad0, tx, ty, inner, col) {
+  var lx = e.lx || 0, ly = e.ly || 0, o = "";
+  if (Math.hypot(lx, ly) > 18 * s) {
+    var ex = tx + lx, ey = ty + ly, dx = ex - ox, dy = ey - oy, l = Math.hypot(dx, dy) || 1;
+    if (l > rad0 + 4 * s) o += Ln(ox + dx / l * rad0, oy + dy / l * rad0, ex, ey, col || "#555555", Math.max(0.8, 1.1 * s), ' stroke-opacity=".6" stroke-linecap="round" pointer-events="none"');
+  }
+  return o + '<g class="eti" data-eti="' + e.id + '" transform="translate(' + f2(lx) + " " + f2(ly) + ')">' + inner + "</g>";
+}
+function extY(e, hw, hh) { var r = rad(e.r); return Math.abs(Math.sin(r)) * hw + Math.abs(Math.cos(r)) * hh; }
+
+function rCam(e, c) {
+  var s = c.s, col = e.color || COLCAM, hf = hfov(e.f), D = Math.max(0.3, e.d) * PX, a = hf / 2, gh = e.ghost;
+  var x1 = D * Math.cos(a), y1 = D * Math.sin(a), dash = gh ? ' stroke-dasharray="' + f2(5 * s) + " " + f2(4 * s) + '"' : "", fill = gh ? "#ffffff" : col;
+  var o = '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ')"><g transform="rotate(' + f2(e.r) + ')">';
+  var mc = (c.hoja && c.hoja.conos) || "sutil"; if (!c.exp && sel.has(e.id)) mc = "marcado";
+  if (mc === "marcado") {
+    o += '<path class="cono" d="M0 0L' + f2(x1) + " " + f2(-y1) + "A" + f2(D) + " " + f2(D) + " 0 0 1 " + f2(x1) + " " + f2(y1) + 'Z" fill="' + col + '" fill-opacity="' + (gh ? 0.05 : 0.12) + '" stroke="' + col + '" stroke-opacity=".6" stroke-width="' + f2(1.4 * s) + '"' + dash + "/>";
+    o += '<line class="cono" x1="0" y1="0" x2="' + f2(D) + '" y2="0" stroke="' + col + '" stroke-opacity=".38" stroke-width="' + f2(s) + '" stroke-dasharray="' + f2(3 * s) + " " + f2(4 * s) + '"/>';
+  } else if (mc !== "no") {
+    var Dc = mc === "corto" ? Math.min(D, 70 * s) : D, xc = Dc * Math.cos(a), yc = Dc * Math.sin(a);
+    o += '<path class="cono" d="M0 0L' + f2(xc) + " " + f2(-yc) + "A" + f2(Dc) + " " + f2(Dc) + " 0 0 1 " + f2(xc) + " " + f2(yc) + 'Z" fill="' + col + '" fill-opacity="' + (gh ? 0.025 : 0.05) + '" stroke="none"/>';
+    o += '<path class="cono" d="M' + f2(xc) + " " + f2(-yc) + "L0 0L" + f2(xc) + " " + f2(yc) + '" fill="none" stroke="' + col + '" stroke-opacity="' + (gh ? 0.35 : 0.5) + '" stroke-width="' + f2(Math.max(0.6, s)) + '"' + dash + "/>";
+  }
+  if (e.tipo === "dron") o += '<circle cx="' + f2(-17 * s) + '" cy="0" r="' + f2(25 * s) + '" fill="none" stroke="' + col + '" stroke-width="' + f2(1.5 * s) + '" stroke-dasharray="' + f2(4 * s) + " " + f2(3 * s) + '"/>';
+  o += R(-30 * s, -11 * s, 23 * s, 22 * s, 3 * s, fill, ' stroke="' + col + '" stroke-width="' + f2(2 * s) + '"' + dash);
+  o += P([[-7 * s, -6 * s], [0, -10 * s], [0, 10 * s], [-7 * s, 6 * s]], fill, ' stroke="' + col + '" stroke-width="' + f2(1.5 * s) + '"' + dash);
+  o += "</g>";
+  var rr = rad(e.r), bx = Math.cos(rr) * (-18.5 * s), by = Math.sin(rr) * (-18.5 * s);
+  o += '<text x="' + f2(bx) + '" y="' + f2(by) + '" dy="' + f2(4.7 * s) + '" font-size="' + f2(13 * s) + '" font-weight="800" font-family="Segoe UI, Arial, sans-serif" text-anchor="middle" fill="' + (gh ? col : "#ffffff") + '">' + esc(e.n) + "</text>";
+  if (e.eti !== false) {
+    var L = [{ t: fmt(e.f, 0) + " mm · " + Math.round(deg(hf)) + "°" }];
+    if (e.planos) L.push({ t: "planos " + e.planos });
+    if (e.tipo && e.tipo !== "fija") L.push({ t: TIPOS[e.tipo] });
+    if (gh) L.push({ t: "posición final" });
+    var es = estima(e, c.hoja); if (es) L.push({ t: es.corto, fill: es.fuera ? "#c62828" : null });
+    if (c.warn && c.warn[e.id]) L.push({ t: "al otro lado del eje", fill: "#c62828", w: "800" });
+    var ux = -Math.cos(rr), uy = -Math.sin(rr), fs = 11 * s, lh = fs * 1.18, tot = lh * L.length;
+    var ax = bx + ux * 24 * s, ay = by + uy * 24 * s, anchor = ux > 0.4 ? "start" : (ux < -0.4 ? "end" : "middle");
+    var y0 = uy > 0.4 ? ay + fs * 0.5 : (uy < -0.4 ? ay - tot + fs * 0.9 : ay - tot / 2 + fs * 0.85);
+    o += etiMov(e, s, bx, by, 15 * s, ax, y0 - fs * 0.85 + tot / 2, texto(ax, y0, L, { fs: fs, fill: col, anchor: anchor, w: "600", hw: 3.2 * s }), col);
+  }
+  return o + "</g>";
+}
+function rPer(e, c) {
+  var s = c.s, Rr = 11 * s, col = e.color, gh = e.ghost, dash = gh ? ' stroke-dasharray="' + f2(4 * s) + " " + f2(3 * s) + '"' : "";
+  var o = '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ')"><g transform="rotate(' + f2(e.r) + ')">';
+  o += P([[Rr * 0.72, -Rr * 0.58], [Rr * 1.75, 0], [Rr * 0.72, Rr * 0.58]], col, gh ? ' opacity=".55"' : "");
+  o += '<circle r="' + f2(Rr) + '" fill="' + (gh ? "#ffffff" : col) + '" stroke="' + (gh ? col : "#ffffff") + '" stroke-width="' + f2(2 * s) + '"' + dash + "/>";
+  o += "</g>";
+  if (e.nombre) o += etiMov(e, s, 0, 0, Rr + 2 * s, 0, -Rr - 11.4 * s, texto(0, -Rr - 7 * s, [e.nombre], { fs: 12.5 * s, fill: col, w: "700", hw: 3.4 * s }), col);
+  return o + "</g>";
+}
+function rVeh(e, c) {
+  var s = c.s, Vv = VEH[e.vt] || VEH.coche, L = Vv.L * PX * s, W = Vv.W * PX * s, col = e.color || "#c0392b", dk = oscurece(col, 0.6), gh = e.ghost;
+  var dash = gh ? ' stroke-dasharray="' + f2(6 * s) + " " + f2(4 * s) + '"' : "", fb = gh ? "#ffffff" : col, op = gh ? 0.3 : 1, vid = "#2b3440", sw = ' stroke-width="' + f2(2 * s) + '"', o = "";
+  if (e.vt === "coche" || e.vt === "policia" || e.vt === "furgoneta") {
+    var pol = e.vt === "policia", fur = e.vt === "furgoneta";
+    o += R(-L / 2, -W / 2, L, W, W * (fur ? 0.14 : 0.24), pol && !gh ? "#f4f4f4" : fb, ' stroke="' + (pol ? "#222222" : dk) + '"' + sw + dash);
+    o += '<g opacity="' + op + '">';
+    if (pol) { o += R(L * 0.24, -W / 2 + 2 * s, L * 0.26 - 2 * s, W - 4 * s, W * 0.16, "#222222"); o += R(-L / 2 + 2 * s, -W / 2 + 2 * s, L * 0.16, W - 4 * s, W * 0.16, "#222222"); }
+    var wf = fur ? [L * 0.27, L * 0.37] : [L * 0.1, L * 0.24];
+    o += P([[wf[0], -W * 0.4], [wf[1], -W * 0.34], [wf[1], W * 0.34], [wf[0], W * 0.4]], vid, ' opacity=".82"');
+    if (!fur) { o += P([[-L * 0.31, -W * 0.36], [-L * 0.21, -W * 0.4], [-L * 0.21, W * 0.4], [-L * 0.31, W * 0.36]], vid, ' opacity=".65"'); o += R(-L * 0.21, -W * 0.4, L * 0.31, W * 0.8, W * 0.08, "#ffffff", ' opacity=".16"'); }
+    else o += R(-L * 0.47, -W * 0.42, L * 0.74, W * 0.84, W * 0.06, "#ffffff", ' opacity=".14"');
+    o += R(L / 2 - 6 * s, -W * 0.42, 4 * s, W * 0.22, 1.5 * s, "#ffe08a") + R(L / 2 - 6 * s, W * 0.2, 4 * s, W * 0.22, 1.5 * s, "#ffe08a");
+    o += R(wf[0] + 2 * s, -W / 2 - 4 * s, 6 * s, 4 * s, s, pol ? "#222222" : dk) + R(wf[0] + 2 * s, W / 2, 6 * s, 4 * s, s, pol ? "#222222" : dk);
+    if (pol) { o += R(-L * 0.06, -W * 0.4, L * 0.07, W * 0.4, 1.5 * s, "#1e5bd6"); o += R(-L * 0.06, 0, L * 0.07, W * 0.4, 1.5 * s, "#d62828"); }
+    o += "</g>";
+  } else if (e.vt === "camion") {
+    var cab = L * 0.18;
+    o += R(-L / 2, -W / 2, L - cab - L * 0.02, W, W * 0.06, gh ? "#ffffff" : "#e9e4dc", ' stroke="' + dk + '"' + sw + dash);
+    o += R(L / 2 - cab, -W / 2, cab, W, W * 0.15, fb, ' stroke="' + dk + '"' + sw + dash);
+    o += '<g opacity="' + op + '">' + P([[L / 2 - cab * 0.34, -W * 0.42], [L / 2 - cab * 0.12, -W * 0.38], [L / 2 - cab * 0.12, W * 0.38], [L / 2 - cab * 0.34, W * 0.42]], vid, ' opacity=".8"') + "</g>";
+  } else if (e.vt === "autobus") {
+    o += R(-L / 2, -W / 2, L, W, W * 0.12, fb, ' stroke="' + dk + '"' + sw + dash);
+    o += '<g opacity="' + op + '">' + R(-L / 2 + W * 0.3, -W * 0.44, L - W * 0.8, W * 0.12, 2 * s, "#ffffff", ' opacity=".45"') + R(-L / 2 + W * 0.3, W * 0.32, L - W * 0.8, W * 0.12, 2 * s, "#ffffff", ' opacity=".45"');
+    o += P([[L / 2 - W * 0.36, -W * 0.44], [L / 2 - W * 0.12, -W * 0.4], [L / 2 - W * 0.12, W * 0.4], [L / 2 - W * 0.36, W * 0.44]], vid, ' opacity=".8"') + "</g>";
+  } else if (e.vt === "moto") {
+    o += '<ellipse rx="' + f2(L / 2) + '" ry="' + f2(W * 0.32) + '" fill="' + fb + '" stroke="' + dk + '" stroke-width="' + f2(1.5 * s) + '"' + dash + "/>";
+    o += '<g opacity="' + op + '">' + Ln(L * 0.28, -W / 2, L * 0.28, W / 2, "#333333", 3 * s, ' stroke-linecap="round"') + '<circle cx="' + f2(-L * 0.04) + '" cy="0" r="' + f2(W * 0.42) + '" fill="#3a3a3a"/></g>';
+  } else if (e.vt === "heli") {
+    var cx = L * 0.16;
+    o += R(-L / 2, -W * 0.12, L * 0.5, W * 0.24, W * 0.1, fb, ' stroke="' + dk + '" stroke-width="' + f2(1.5 * s) + '"' + dash);
+    o += Ln(-L / 2, -W * 0.6, -L / 2, W * 0.6, dk, 3 * s);
+    o += '<ellipse cx="' + f2(cx) + '" cy="0" rx="' + f2(L * 0.24) + '" ry="' + f2(W * 0.62) + '" fill="' + fb + '" stroke="' + dk + '"' + sw + dash + "/>";
+    o += '<ellipse cx="' + f2(cx + L * 0.12) + '" cy="0" rx="' + f2(L * 0.08) + '" ry="' + f2(W * 0.45) + '" fill="' + vid + '" opacity="' + (gh ? 0.25 : 0.7) + '"/>';
+    o += '<circle cx="' + f2(cx) + '" cy="0" r="' + f2(L * 0.46) + '" fill="none" stroke="' + dk + '" stroke-width="' + f2(1.5 * s) + '" stroke-dasharray="' + f2(8 * s) + " " + f2(6 * s) + '" opacity=".7"/>';
+  }
+  var ext = e.vt === "heli" ? L * 0.62 : extY(e, L / 2, W / 2);
+  return G(e, o) + etiquetaBajo(e, ext, s, e.nombre, gh ? col : "#333333");
+}
+function rInt(e) {
+  var L = e.w * PX, W = e.h * PX, col = e.color || "#c0392b", sg = e.volante === "der" ? 1 : -1, o = "";
+  o += R(-L / 2, -W / 2, L, W, W * 0.3, "#faf7f4", ' stroke="' + col + '" stroke-width="' + f2(Math.max(3, W * 0.05)) + '"');
+  o += R(L * 0.3, -W * 0.44, L * 0.18, W * 0.88, W * 0.18, "#efe8e2");
+  o += R(-L * 0.47, -W * 0.42, L * 0.15, W * 0.84, W * 0.16, "#efe8e2");
+  o += P([[L * 0.18, -W * 0.42], [L * 0.3, -W * 0.36], [L * 0.3, W * 0.36], [L * 0.18, W * 0.42]], "#cfe3f2", ' stroke="#8fb3cf" stroke-width="1.5"');
+  o += P([[-L * 0.32, -W * 0.38], [-L * 0.27, -W * 0.42], [-L * 0.27, W * 0.42], [-L * 0.32, W * 0.38]], "#cfe3f2", ' stroke="#8fb3cf" stroke-width="1.5"');
+  o += R(L * 0.115, -W * 0.42, L * 0.065, W * 0.84, 3, "#ddd5cc");
+  [-1, 1].forEach(function (k) {
+    o += R(-L * 0.06, k * W * 0.24 - W * 0.15, L * 0.16, W * 0.3, W * 0.05, "#d8d0c8", ' stroke="#a89f94" stroke-width="1.5"');
+    o += R(-L * 0.08, k * W * 0.24 - W * 0.15, L * 0.035, W * 0.3, W * 0.03, "#bfb5a9");
+  });
+  o += '<ellipse cx="' + f2(L * 0.135) + '" cy="' + f2(sg * W * 0.24) + '" rx="' + f2(Math.max(2, W * 0.025)) + '" ry="' + f2(W * 0.12) + '" fill="none" stroke="#444" stroke-width="' + f2(Math.max(2, W * 0.025)) + '"/>';
+  o += R(-L * 0.27, -W * 0.4, L * 0.16, W * 0.8, W * 0.06, "#d8d0c8", ' stroke="#a89f94" stroke-width="1.5"');
+  o += R(-L * 0.29, -W * 0.4, L * 0.035, W * 0.8, W * 0.03, "#bfb5a9");
+  o += Ln(-L * 0.27, -W * 0.133, -L * 0.11, -W * 0.133, "#a89f94", 1.2) + Ln(-L * 0.27, W * 0.133, -L * 0.11, W * 0.133, "#a89f94", 1.2);
+  o += R(-L * 0.035, -W * 0.06, L * 0.08, W * 0.12, 2, "#cfc5b8");
+  [L * 0.12, -L * 0.1].forEach(function (x) { o += Ln(x, -W / 2 - 1, x, -W / 2 + W * 0.07, col, 2) + Ln(x, W / 2 + 1, x, W / 2 - W * 0.07, col, 2); });
+  var o2 = G(e, o);
+  var rr = rad(e.r), dx = Math.cos(rr) * (L / 2 + 12), dy = Math.sin(rr) * (L / 2 + 12);
+  var anchor = Math.cos(rr) > 0.4 ? "start" : (Math.cos(rr) < -0.4 ? "end" : "middle");
+  o2 += texto(e.x + dx, e.y + dy, ["delante"], { fs: Math.max(6, W * 0.085), fill: "#999", w: "700", anchor: anchor, base: "central", halo: false });
+  if (e.nombre) o2 += etiquetaBajo(e, extY(e, L / 2, W / 2), 1, e.nombre, "#333");
+  return o2;
+}
+function rEdi(e, c) {
+  var w = e.w * PX, h = e.h * PX, o = R(-w / 2, -h / 2, w, h, 0, e.color || PALEDI[0], ' stroke="' + oscurece(e.color || PALEDI[0], 0.66) + '" stroke-width="2"');
+  var out = G(e, o);
+  if (e.nombre) { var L = String(e.nombre).split("\n"), fs = (e.fs || 22) * c.s; out += texto(e.x, e.y - (L.length - 1) * fs * 0.59, L, { fs: fs, fill: "#3a3a3a", w: "800", base: "central", halo: false }); }
+  return out;
+}
+function cebraStripes(x0, y0, w, h, horiz) {
+  var o = "", n, i, st = 0.5 * PX, paso = PX;
+  if (horiz) { n = Math.floor(h / paso + 0.5); for (i = 0; i < n; i++) o += R(x0, y0 + i * paso + (paso - st) / 2, w, st, 0, "#ffffff", ' stroke="#bdbdbd" stroke-width="1"'); }
+  else { n = Math.floor(w / paso + 0.5); for (i = 0; i < n; i++) o += R(x0 + i * paso + (paso - st) / 2, y0, st, h, 0, "#ffffff", ' stroke="#bdbdbd" stroke-width="1"'); }
+  return o;
+}
+var ACERA = "#ebe7df", ACEB = "#c9c1b3", CALZ = "#bdbdbd";
+function rCalle(e, c) {
+  var L = e.w * PX, W = e.h * PX, A = (e.aceras ? e.acera : 0) * PX, n = Math.max(1, e.carriles | 0), o = "", k;
+  if (A) { o += R(-L / 2, -W / 2 - A, L, A, 0, ACERA, ' stroke="' + ACEB + '" stroke-width="1.5"'); o += R(-L / 2, W / 2, L, A, 0, ACERA, ' stroke="' + ACEB + '" stroke-width="1.5"'); }
+  o += R(-L / 2, -W / 2, L, W, 0, CALZ);
+  for (k = 1; k < n; k++) {
+    var y = -W / 2 + k * W / n, centro = n % 2 === 0 && k === n / 2;
+    if (centro && e.centro === "cont") o += Ln(-L / 2, y - 3, L / 2, y - 3, "#ffffff", 3) + Ln(-L / 2, y + 3, L / 2, y + 3, "#ffffff", 3);
+    else if (centro && e.centro === "mediana") o += R(-L / 2, y - 0.75 * PX, L, 1.5 * PX, 0, "#b9cfa9", ' stroke="#8aa77c" stroke-width="1.5"');
+    else o += Ln(-L / 2, y, L / 2, y, "#ffffff", 4, ' stroke-dasharray="80 100"');
+  }
+  o += Ln(-L / 2, -W / 2, L / 2, -W / 2, "#8f8f8f", 2) + Ln(-L / 2, W / 2, L / 2, W / 2, "#8f8f8f", 2);
+  var out = G(e, o);
+  if (e.nombre) { var ru = normDeg(e.r); if (ru > 90) ru -= 180; if (ru <= -90) ru += 180; out += '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ") rotate(" + f2(ru) + ')">' + texto(0, 0, [e.nombre], { fs: 15 * c.s, fill: "#ffffff", w: "700", base: "central", halo: false }) + "</g>"; }
+  return out;
+}
+function rCruce(e) {
+  var half = e.w * PX / 2, W = e.h * PX, h = W / 2, A = (e.aceras ? e.acera : 0) * PX, o = "";
+  if (A) {
+    [-1, 1].forEach(function (sx) { [-1, 1].forEach(function (sy) {
+      o += R(Math.min(sx * h, sx * half), Math.min(sy * h, sy * (h + A)), half - h, A, 0, ACERA, ' stroke="' + ACEB + '" stroke-width="1.5"');
+      o += R(Math.min(sx * h, sx * (h + A)), Math.min(sy * (h + A), sy * half), A, Math.max(0, half - h - A), 0, ACERA, ' stroke="' + ACEB + '" stroke-width="1.5"');
+    }); });
+  }
+  o += R(-half, -h, 2 * half, W, 0, CALZ) + R(-h, -half, W, 2 * half, 0, CALZ);
+  var g0 = h + (e.pasos ? 5 * PX : 0.5 * PX);
+  if (g0 < half) { o += Ln(g0, 0, half, 0, "#ffffff", 4, ' stroke-dasharray="80 100"') + Ln(-g0, 0, -half, 0, "#ffffff", 4, ' stroke-dasharray="80 100"') + Ln(0, g0, 0, half, "#ffffff", 4, ' stroke-dasharray="80 100"') + Ln(0, -g0, 0, -half, "#ffffff", 4, ' stroke-dasharray="80 100"'); }
+  if (e.pasos) { var d0 = h + 0.8 * PX, dw = 3.5 * PX; if (d0 + dw < half) { o += cebraStripes(d0, -h, dw, W, true) + cebraStripes(-d0 - dw, -h, dw, W, true) + cebraStripes(-h, d0, W, dw, false) + cebraStripes(-h, -d0 - dw, W, dw, false); } }
+  var bord = "#8f8f8f";
+  [[h, -h, half, -h], [h, h, half, h], [-h, -h, -half, -h], [-h, h, -half, h], [-h, h, -h, half], [h, h, h, half], [-h, -h, -h, -half], [h, -h, h, -half]].forEach(function (q) { o += Ln(q[0], q[1], q[2], q[3], bord, 2); });
+  return G(e, o);
+}
+function rCebra(e) { var w = e.w * PX, h = e.h * PX; return G(e, cebraStripes(-w / 2, -h / 2, w, h, true)); }
+function rAparc(e, c) {
+  var w = e.w * PX, h = e.h * PX, o = R(-w / 2, -h / 2, w, h, 0, "#d2d2d2", ' stroke="#9a9a9a" stroke-width="2"'), dep = Math.min(5 * PX, h * 0.4), x;
+  for (x = -w / 2; x <= w / 2 + 0.1; x += 2.5 * PX) { o += Ln(x, -h / 2, x, -h / 2 + dep, "#ffffff", 3) + Ln(x, h / 2, x, h / 2 - dep, "#ffffff", 3); }
+  var out = G(e, o);
+  if (e.nombre) out += texto(e.x, e.y, [e.nombre], { fs: 15 * c.s, fill: "#555", w: "700", base: "central", halo: false });
+  return out;
+}
+function rPuerta(e, c) {
+  var w = e.w * PX, t = 0.12 * PX, sg = e.abre === "der" ? 1 : -1, o = R(-w / 2, -t, w, 2 * t, 0, "#ffffff");
+  o += Ln(-w / 2, 0, -w / 2, sg * w, "#6b4f2a", 2.5);
+  o += '<path d="M' + f2(-w / 2) + " " + f2(sg * w) + "A" + f2(w) + " " + f2(w) + " 0 0 " + (sg < 0 ? 1 : 0) + " " + f2(w / 2) + ' 0" fill="none" stroke="#6b4f2a" stroke-width="1.2" stroke-dasharray="4 3"/>';
+  return G(e, o) + etiquetaBajo(e, extY(e, w / 2, w), c.s, e.nombre, "#6b4f2a");
+}
+function rVent(e, c) {
+  var w = e.w * PX, t = 0.12 * PX, o = R(-w / 2, -t, w, 2 * t, 0, "#dcebf7", ' stroke="#5b8db8" stroke-width="1.5"') + Ln(-w / 2, 0, w / 2, 0, "#5b8db8", 1.2);
+  return G(e, o) + etiquetaBajo(e, extY(e, w / 2, t), c.s, e.nombre, "#3f6f99");
+}
+function rMue(e, c) {
+  var w = e.w * PX, h = e.h * PX, o = "", T = e.mt;
+  var mad = ' stroke="#9c8b70" stroke-width="1.5"';
+  if (T === "mesa" || T === "escritorio") o = R(-w / 2, -h / 2, w, h, 3, "#e8dcc8", mad);
+  else if (T === "mostrador") o = R(-w / 2, -h / 2, w, h, 2, "#d6c09d", mad) + Ln(-w / 2, -h * 0.2, w / 2, -h * 0.2, "#9c8b70", 1);
+  else if (T === "mesar") o = '<ellipse rx="' + f2(w / 2) + '" ry="' + f2(h / 2) + '" fill="#e8dcc8"' + mad + "/>";
+  else if (T === "silla") o = R(-w / 2, -h / 2, w, h, 3, "#d9cbb5", mad) + R(-w / 2, -h / 2, w, h * 0.22, 2, "#8d7553");
+  else if (T === "sillon" || T === "sofa") o = R(-w / 2, -h / 2, w, h, 4, "#c4c4dc", ' stroke="#7b7ba4" stroke-width="1.5"') + R(-w / 2, -h / 2, w, h * 0.28, 3, "#9d9dc4") + R(-w / 2, -h / 2, w * (T === "sofa" ? 0.08 : 0.16), h, 3, "#9d9dc4") + R(w / 2 - w * (T === "sofa" ? 0.08 : 0.16), -h / 2, w * (T === "sofa" ? 0.08 : 0.16), h, 3, "#9d9dc4");
+  else if (T === "cama") o = R(-w / 2, -h / 2, w, h, 4, "#efe8dc", ' stroke="#a89f94" stroke-width="1.5"') + R(-w / 2 + w * 0.04, -h * 0.42, w * 0.2, h * 0.36, 4, "#ffffff", ' stroke="#c9c1b3"') + R(-w / 2 + w * 0.04, h * 0.06, w * 0.2, h * 0.36, 4, "#ffffff", ' stroke="#c9c1b3"') + Ln(-w * 0.18, -h / 2, -w * 0.18, h / 2, "#c9c1b3", 2);
+  else if (T === "columna") o = '<ellipse rx="' + f2(w / 2) + '" ry="' + f2(h / 2) + '" fill="#bdbdbd" stroke="#777" stroke-width="1.5"/>';
+  else if (T === "arbol") o = '<ellipse rx="' + f2(w / 2) + '" ry="' + f2(h / 2) + '" fill="#a9cf8f" fill-opacity=".85" stroke="#6e9b57" stroke-width="2"/><ellipse rx="' + f2(w * 0.3) + '" ry="' + f2(h * 0.3) + '" fill="none" stroke="#6e9b57" stroke-width="1" opacity=".6"/><circle r="' + f2(Math.max(3, w * 0.07)) + '" fill="#6d4c2f"/>';
+  else if (T === "farola") o = '<circle r="' + f2(w * 1.6) + '" fill="#f5e7a1" fill-opacity=".45"/><circle r="' + f2(w * 0.3) + '" fill="#555"/>';
+  else if (T === "bancoc") o = R(-w / 2, -h / 2, w, h, 2, "#c9a77c", ' stroke="#8d7553" stroke-width="1.5"') + Ln(-w / 2, -h / 6, w / 2, -h / 6, "#8d7553", 1) + Ln(-w / 2, h / 6, w / 2, h / 6, "#8d7553", 1);
+  else o = R(-w / 2, -h / 2, w, h, 2, "#ddd", mad);
+  return G(e, o) + etiquetaBajo(e, extY(e, w / 2, h / 2), c.s, e.nombre, "#555");
+}
+function rImg(e, c) {
+  var w = e.w * PX, h = e.h * PX;
+  if (c.exp) return G(e, '<image href="' + (S.imgs[e.ik] || "") + '" x="' + f2(-w / 2) + '" y="' + f2(-h / 2) + '" width="' + f2(w) + '" height="' + f2(h) + '" preserveAspectRatio="none" opacity="' + e.op + '"/>');
+  return G(e, '<use href="#im-' + e.id + '" opacity="' + e.op + '"/><rect x="' + f2(-w / 2) + '" y="' + f2(-h / 2) + '" width="' + f2(w) + '" height="' + f2(h) + '" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="6 5"/>');
+}
+function rTxt(e, c) {
+  var L = String(e.texto || "").split("\n"), fs = e.fs * c.s, b = caja(e, c.s), o = "";
+  if (e.fondo) o += R(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0, 4 * c.s, "#ffffff", ' stroke="#cccccc" stroke-width="' + f2(c.s) + '"');
+  if (!c.exp) o += R(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0, 0, "none", ' pointer-events="all"');
+  o += texto(0, -(L.length - 1) * fs * 0.59, L, { fs: fs, fill: e.color, w: e.neg ? "700" : "400", base: "central", halo: !e.fondo, hw: fs * 0.25 });
+  return G(e, o);
+}
+function sombra(M, sg, B, col, s) {
+  var n = M.length, off = [];
+  for (var i = 0; i < n; i++) { var a = M[Math.max(0, i - 1)], b = M[Math.min(n - 1, i + 1)], tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l; off.push([M[i][0] - ty * B * sg, M[i][1] + tx * B * sg]); }
+  var m = puntoMedio(M);
+  return P(M.concat(off.slice().reverse()), col, ' fill-opacity=".1" pointer-events="none"') + texto(m.x + m.nx * B * 0.55 * sg, m.y + m.ny * B * 0.55 * sg, ["no cruzar"], { fs: 11 * s, fill: col, w: "800", base: "central", hw: 3 * s });
+}
+function punta(p, u, g, col) { var L = 9 + g * 1.6, Wd = L * 0.6, bx = p[0] - u[0] * L, by = p[1] - u[1] * L, nx = -u[1], ny = u[0]; return P([[p[0] + u[0] * g * 0.5, p[1] + u[1] * g * 0.5], [bx + nx * Wd, by + ny * Wd], [bx - nx * Wd, by - ny * Wd]], col); }
+function rPath(e, c) {
+  if (!e.pts || e.pts.length < 2) return "";
+  var s = c.s, col = e.color, g = Math.max(0.5, e.g) * s, d = dPath(e.pts, e.suave), M = muestras(e), o = "";
+  if (e.k === "eje" && e.lado && e.lado !== "no") o += sombra(M, e.lado === "a" ? 1 : -1, 120 * s, col, s);
+  if (!c.exp) o += '<path d="' + d + '" fill="none" stroke="#000" stroke-opacity="0" stroke-width="' + f2(Math.max(14 / c.z, g + 6)) + '" pointer-events="stroke"/>';
+  var dash = e.disc ? ' stroke-dasharray="' + f2(g * 3.2) + " " + f2(g * 2.4) + '"' : "";
+  o += '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + f2(g) + '" stroke-linecap="' + (e.disc ? "butt" : "round") + '" stroke-linejoin="round"' + dash + "/>";
+  if (e.fl === "fin" || e.fl === "ambas") o += punta(M[M.length - 1], dirFin(M), g, col);
+  if (e.fl === "ambas") o += punta(M[0], dirIni(M), g, col);
+  if (e.nombre) { var m = puntoMedio(M); o += etiMov(e, s, m.x, m.y, 4 * s, m.x + m.nx * 15 * s, m.y + m.ny * 15 * s, texto(m.x + m.nx * 15 * s, m.y + m.ny * 15 * s, [e.nombre], { fs: 12 * s, fill: col, w: "700", base: "central", hw: 3.2 * s }), col); }
+  return o;
+}
+function rDet(e, c) {
+  var s = c.s, w = e.w * PX, h = e.h * PX, k = +e.esc || 1, o = "";
+  var tit = "DETALLE " + (e.letra || "") + (e.titulo ? " · " + e.titulo : "") + (k !== 1 ? " · ampliado ×" + fmt(k, k % 1 ? 1 : 0) : "");
+  if (e.fondo !== false) o += R(-w / 2, -h / 2, w, h, 4 * s, "#ffffff", ' pointer-events="none"');
+  o += R(-w / 2, -h / 2, w, h, 4 * s, "none", ' stroke="#4a4a4a" stroke-width="' + f2(1.6 * s) + '" pointer-events="none"');
+  if (!c.exp) o += R(-w / 2, -h / 2, w, h, 4 * s, "none", ' stroke="#000" stroke-opacity="0" stroke-width="' + f2(Math.max(12 / c.z, 6 * s)) + '" pointer-events="stroke"');
+  o += '<circle cx="' + f2(-w / 2) + '" cy="' + f2(-h / 2) + '" r="' + f2(12 * s) + '" fill="#4a4a4a"/>' + texto(-w / 2, -h / 2, [e.letra || "A"], { fs: 13 * s, fill: "#ffffff", w: "800", base: "central", halo: false });
+  o += texto(-w / 2 + 18 * s, -h / 2 - 7 * s, [tit], { fs: 12 * s, fill: "#333333", w: "800", anchor: "start", hw: 3 * s });
+  return G(e, o);
+}
+function rLla(e, c) {
+  var s = c.s;
+  return '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ')"><circle r="' + f2(12 * s) + '" fill="#ffffff" stroke="#4a4a4a" stroke-width="' + f2(2 * s) + '"/>' + texto(0, 0, [e.letra || "A"], { fs: 14 * s, fill: "#4a4a4a", w: "800", base: "central", halo: false }) + "</g>";
+}
+function rEl(e, c) {
+  switch (e.t) {
+    case "cam": return rCam(e, c); case "per": return rPer(e, c); case "veh": return rVeh(e, c); case "int": return rInt(e, c);
+    case "edi": return rEdi(e, c); case "calle": return rCalle(e, c); case "cruce": return rCruce(e, c); case "cebra": return rCebra(e, c);
+    case "aparc": return rAparc(e, c); case "puerta": return rPuerta(e, c); case "vent": return rVent(e, c); case "mue": return rMue(e, c);
+    case "img": return rImg(e, c); case "txt": return rTxt(e, c); case "path": return rPath(e, c);
+    case "det": return rDet(e, c); case "lla": return rLla(e, c);
+  }
+  return "";
+}
+function caja(e, s) {
+  var w, h;
+  switch (e.t) {
+    case "cam": return { x0: -32 * s, y0: -13 * s, x1: 2 * s, y1: 13 * s };
+    case "per": var Rr = 11 * s; return { x0: -Rr, y0: -Rr, x1: Rr * 1.75, y1: Rr };
+    case "veh": var Vv = VEH[e.vt] || VEH.coche, L = Vv.L * PX * s / 2, W = Vv.W * PX * s / 2;
+      if (e.vt === "heli") { var rr = Vv.L * PX * s * 0.46, cx = Vv.L * PX * s * 0.16; return { x0: -L, y0: -rr, x1: cx + rr, y1: rr }; }
+      return { x0: -L, y0: -W, x1: L, y1: W };
+    case "calle": w = e.w * PX / 2; h = e.h * PX / 2 + (e.aceras ? e.acera * PX : 0); return { x0: -w, y0: -h, x1: w, y1: h };
+    case "cruce": w = e.w * PX / 2; return { x0: -w, y0: -w, x1: w, y1: w };
+    case "puerta": w = e.w * PX; return e.abre === "der" ? { x0: -w / 2, y0: -0.12 * PX, x1: w / 2, y1: w } : { x0: -w / 2, y0: -w, x1: w / 2, y1: 0.12 * PX };
+    case "vent": w = e.w * PX / 2; return { x0: -w, y0: -0.15 * PX, x1: w, y1: 0.15 * PX };
+    case "txt": var Lt = String(e.texto || "").split("\n"), fs = e.fs * s, mx = 1; Lt.forEach(function (l) { mx = Math.max(mx, l.length); });
+      w = mx * fs * 0.6 + 10 * s; h = Lt.length * fs * 1.18 + 6 * s; return { x0: -w / 2, y0: -h / 2, x1: w / 2, y1: h / 2 };
+    case "lla": return { x0: -12 * s, y0: -12 * s, x1: 12 * s, y1: 12 * s };
+    case "mue": if (e.mt === "farola") { w = e.w * PX * 1.6; return { x0: -w, y0: -w, x1: w, y1: w }; }
+  }
+  w = (e.w || 1) * PX / 2; h = (e.h || 1) * PX / 2; return { x0: -w, y0: -h, x1: w, y1: h };
+}
+function bboxPts(P) { var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; P.forEach(function (p) { x0 = Math.min(x0, p[0]); y0 = Math.min(y0, p[1]); x1 = Math.max(x1, p[0]); y1 = Math.max(y1, p[1]); }); return { x0: x0, y0: y0, x1: x1, y1: y1 }; }
+
+/* ------------------------------------------------------------ lienzo */
+var svg = $("#lienzo"), gVista = $("#vista"), capaEls = $("#capaEls"), capaSel = $("#capaSel"), defsImg = $("#defsImg"), rej = $("#rej"), lazo = $("#lazo");
+function ctx(h, exp) { return { s: h.sim || 1, z: exp ? 1 : V.z, exp: exp, hoja: h, warn: avisos(h) }; }
+function sincImgs(h) {
+  var ids = {};
+  h.els.forEach(function (e) {
+    if (e.t !== "img") return; ids[e.id] = 1;
+    var im = document.getElementById("im-" + e.id), w = e.w * PX, hh = e.h * PX;
+    if (!im) { im = document.createElementNS(NS, "image"); im.setAttribute("id", "im-" + e.id); im.setAttribute("preserveAspectRatio", "none"); defsImg.appendChild(im); }
+    if (im.getAttribute("data-ik") !== e.ik) { im.setAttribute("href", S.imgs[e.ik] || ""); im.setAttribute("data-ik", e.ik); }
+    im.setAttribute("x", -w / 2); im.setAttribute("y", -hh / 2); im.setAttribute("width", w); im.setAttribute("height", hh);
+  });
+  Array.prototype.slice.call(defsImg.children).forEach(function (n) { if (!ids[n.id.slice(3)]) n.remove(); });
+}
+var raf = 0;
+function pinta() { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; pintaYa(); }); }
+function pintaYa() {
+  var h = hoja(), c = ctx(h, false), out = "";
+  sincImgs(h);
+  ordenados(h.els).forEach(function (e) { out += '<g class="el' + (e.lock ? " bloq" : "") + '" data-id="' + e.id + '">' + rEl(e, c) + "</g>"; });
+  capaEls.innerHTML = out;
+  capaSel.innerHTML = rSel(h, c) + rDib(c);
+  $("#vacio").style.display = h.els.length || dib ? "none" : "block";
+  pistaTxt(c.warn);
+}
+function rSel(h, c) {
+  var o = "", z = c.z, hs = 7 / z, sw = 1.4 / z, L = h.els.filter(function (e) { return sel.has(e.id); }), uno = L.length === 1;
+  L.forEach(function (e) {
+    if (e.t === "path") {
+      var b = bboxPts(e.pts);
+      o += '<rect x="' + f2(b.x0 - 6 / z) + '" y="' + f2(b.y0 - 6 / z) + '" width="' + f2(b.x1 - b.x0 + 12 / z) + '" height="' + f2(b.y1 - b.y0 + 12 / z) + '" fill="none" stroke="#1e88e5" stroke-width="' + sw + '" stroke-dasharray="' + f2(4 / z) + " " + f2(3 / z) + '"/>';
+      if (uno && !e.lock) e.pts.forEach(function (p, i) { o += '<circle class="h" data-h="v" data-e="' + e.id + '" data-i="' + i + '" cx="' + f2(p[0]) + '" cy="' + f2(p[1]) + '" r="' + f2(hs) + '" fill="#ffffff" stroke="#1e88e5" stroke-width="' + f2(sw * 1.4) + '"/>'; });
+      return;
+    }
+    var b2 = caja(e, c.s), m = 4 / z;
+    o += '<g transform="translate(' + f2(e.x) + " " + f2(e.y) + ") rotate(" + f2(e.r) + ')"><rect x="' + f2(b2.x0 - m) + '" y="' + f2(b2.y0 - m) + '" width="' + f2(b2.x1 - b2.x0 + 2 * m) + '" height="' + f2(b2.y1 - b2.y0 + 2 * m) + '" fill="none" stroke="' + (e.lock ? "#999" : "#1e88e5") + '" stroke-width="' + sw + '" stroke-dasharray="' + f2(4 / z) + " " + f2(3 / z) + '"/>';
+    if (uno && !e.lock) {
+      if (e.t === "cam") { var D = e.d * PX; o += Ln(0, 0, D, 0, "#1e88e5", sw) + '<circle class="h hpunta" data-h="punta" data-e="' + e.id + '" cx="' + f2(D) + '" cy="0" r="' + f2(hs * 1.25) + '" fill="#1e88e5" stroke="#ffffff" stroke-width="' + sw + '"/>'; }
+      else { var yr = b2.y0 - m - 24 / z; o += Ln(0, b2.y0 - m, 0, yr, "#1e88e5", sw) + '<circle class="h hrot" data-h="rot" data-e="' + e.id + '" cx="0" cy="' + f2(yr) + '" r="' + f2(hs) + '" fill="#ffffff" stroke="#1e88e5" stroke-width="' + f2(sw * 1.4) + '"/>'; }
+      if (REDIM[e.t]) o += '<rect class="h hres" data-h="res" data-e="' + e.id + '" x="' + f2(b2.x1 + m - hs) + '" y="' + f2(b2.y1 + m - hs) + '" width="' + f2(2 * hs) + '" height="' + f2(2 * hs) + '" fill="#1e88e5" stroke="#ffffff" stroke-width="' + sw + '"/>';
+    }
+    o += "</g>";
+  });
+  return o;
+}
+function rDib(c) {
+  if (!dib) return "";
+  var z = c.z, pts = dib.pts.concat(dib.cur ? [dib.cur] : []), K = KP[dib.k], o = "";
+  if (pts.length > 1) o += '<path d="' + dPath(pts, false) + '" fill="none" stroke="' + K.c + '" stroke-width="' + f2(Math.max(2 / z, K.g * (hoja().sim || 1))) + '" stroke-dasharray="' + f2(6 / z) + " " + f2(4 / z) + '" opacity=".85"/>';
+  dib.pts.forEach(function (p) { o += '<circle cx="' + f2(p[0]) + '" cy="' + f2(p[1]) + '" r="' + f2(4.5 / z) + '" fill="#ffffff" stroke="' + K.c + '" stroke-width="' + f2(2 / z) + '"/>'; });
+  return o;
+}
+function aplicaVista() {
+  gVista.setAttribute("transform", "translate(" + f2(V.tx) + " " + f2(V.ty) + ") scale(" + V.z.toFixed(5) + ")");
+  var W = svg.clientWidth || 800, H = svg.clientHeight || 600;
+  rej.setAttribute("x", (-V.tx / V.z) - 50); rej.setAttribute("y", (-V.ty / V.z) - 50); rej.setAttribute("width", W / V.z + 100); rej.setAttribute("height", H / V.z + 100);
+  rej.setAttribute("display", rejOn ? "inline" : "none");
+  $("#pmL").setAttribute("stroke-width", 1 / V.z); $("#pML").setAttribute("stroke-width", 1.5 / V.z);
+  $("#pmL").setAttribute("stroke", V.z < 0.3 ? "none" : "#e8e8e2"); $("#pML").setAttribute("stroke", V.z < 0.06 ? "none" : "#d6d6ce");
+  $("#zVal").textContent = Math.round(V.z * 100) + " %";
+  pinta();
+}
+function vistaHoja() {
+  var h = hoja();
+  if (!h.vista) { h.vista = { tx: (svg.clientWidth || 800) / 2, ty: (svg.clientHeight || 600) / 2, z: 1 }; V = h.vista; if (h.els.length) { pintaYa(); ajusta(); return; } }
+  V = h.vista; aplicaVista();
+}
+function aMundo(ev) { var r = svg.getBoundingClientRect(); return [(ev.clientX - r.left - V.tx) / V.z, (ev.clientY - r.top - V.ty) / V.z]; }
+function snapV(v) { return Math.round(v / 20) * 20; }
+function imanP(p) { return iman ? [snapV(p[0]), snapV(p[1])] : [p[0], p[1]]; }
+function zoomEn(sx, sy, f) { var z2 = clamp(V.z * f, 0.02, 12), wx = (sx - V.tx) / V.z, wy = (sy - V.ty) / V.z; V.tx = sx - wx * z2; V.ty = sy - wy * z2; V.z = z2; aplicaVista(); }
+function ajusta() {
+  pintaYa();
+  var W = svg.clientWidth || 800, H = svg.clientHeight || 600, b;
+  try { b = capaEls.getBBox(); } catch (x) { b = null; }
+  if (!b || !hoja().els.length || (b.width === 0 && b.height === 0)) { V.z = 1; V.tx = W / 2; V.ty = H / 2; aplicaVista(); return; }
+  var z = clamp(Math.min((W - 90) / Math.max(b.width, 1), (H - 90) / Math.max(b.height, 1)), 0.02, 4);
+  V.z = z; V.tx = W / 2 - (b.x + b.width / 2) * z; V.ty = H / 2 - (b.y + b.height / 2) * z; aplicaVista();
+}
+function centraEn(e) { var W = svg.clientWidth, H = svg.clientHeight, x = e.x, y = e.y; if (e.t === "path") { var b = bboxPts(e.pts); x = (b.x0 + b.x1) / 2; y = (b.y0 + b.y1) / 2; } V.tx = W / 2 - x * V.z; V.ty = H / 2 - y * V.z; aplicaVista(); }
+
+/* ------------------------------------------------------------ ratón y teclado */
+svg.addEventListener("contextmenu", function (ev) { ev.preventDefault(); });
+svg.addEventListener("pointerdown", function (ev) {
+  if (ev.button === 2) return;
+  var p = aMundo(ev);
+  try { svg.setPointerCapture(ev.pointerId); } catch (x) {}
+  if (ev.button === 1 || espacio || herr === "mano") { modo = { tipo: "pan", sx: ev.clientX, sy: ev.clientY, tx: V.tx, ty: V.ty }; return; }
+  if (herr.indexOf("path:") === 0) { anadePunto(p); return; }
+  if (herr !== "sel") { coloca(herr, p, ev.shiftKey); return; }
+  var th = ev.target.closest ? ev.target.closest("[data-h]") : null;
+  if (th) { iniciaH(th, p, ev); return; }
+  var te = ev.target.closest ? ev.target.closest("[data-eti]") : null;
+  if (te && !ev.shiftKey) {
+    var ee = porId(te.getAttribute("data-eti"));
+    if (ee && !ee.lock) {
+      if (!sel.has(ee.id) || sel.size > 1) { sel = new Set([ee.id]); panel(); lista(); }
+      modo = { tipo: "eti", e: ee, p0: p, lx0: ee.lx || 0, ly0: ee.ly || 0, mov: false };
+      pinta(); return;
+    }
+  }
+  var tg = ev.target.closest ? ev.target.closest("[data-id]") : null;
+  if (tg) {
+    var id = tg.getAttribute("data-id");
+    if (ev.shiftKey) { if (sel.has(id)) sel.delete(id); else sel.add(id); refresca(); return; }
+    if (!sel.has(id)) { sel = new Set([id]); panel(); lista(); }
+    var h = hoja(), movs = h.els.filter(function (e) { return sel.has(e.id) && !e.lock; }).map(function (e) { return { e: e, x: e.x, y: e.y, pts: e.pts ? e.pts.map(function (q) { return q.slice(); }) : null }; });
+    modo = { tipo: "mover", p0: p, movs: movs, ref: porId(id), mov: false };
+    pinta(); return;
+  }
+  if (!ev.shiftKey && sel.size) { sel.clear(); panel(); lista(); }
+  modo = { tipo: "lazo", p0: p, p1: p, sx: ev.clientX, sy: ev.clientY };
+  pinta();
+});
+svg.addEventListener("pointermove", function (ev) {
+  var p = aMundo(ev); ultimoP = p;
+  if (dib) { dib.cur = imanP(p); pinta(); }
+  if (!modo) return;
+  if (modo.tipo === "pan") { V.tx = modo.tx + (ev.clientX - modo.sx); V.ty = modo.ty + (ev.clientY - modo.sy); aplicaVista(); return; }
+  if (modo.tipo === "mover") {
+    var dx = p[0] - modo.p0[0], dy = p[1] - modo.p0[1];
+    if (!modo.mov && Math.hypot(dx, dy) * V.z < 3) return;
+    modo.mov = true;
+    if (iman && modo.movs.length) {
+      var r = null; modo.movs.forEach(function (m) { if (m.e === modo.ref) r = m; }); r = r || modo.movs[0];
+      if (r.pts) { dx = snapV(r.pts[0][0] + dx) - r.pts[0][0]; dy = snapV(r.pts[0][1] + dy) - r.pts[0][1]; }
+      else { dx = snapV(r.x + dx) - r.x; dy = snapV(r.y + dy) - r.y; }
+    }
+    modo.movs.forEach(function (m) { if (m.pts) m.e.pts = m.pts.map(function (q) { return [q[0] + dx, q[1] + dy]; }); else { m.e.x = m.x + dx; m.e.y = m.y + dy; } });
+    pinta(); return;
+  }
+  if (modo.tipo === "eti") {
+    var ldx = p[0] - modo.p0[0], ldy = p[1] - modo.p0[1];
+    if (!modo.mov && Math.hypot(ldx, ldy) * V.z < 3) return;
+    modo.mov = true; modo.e.lx = Math.round(modo.lx0 + ldx); modo.e.ly = Math.round(modo.ly0 + ldy);
+    if (Math.hypot(modo.e.lx, modo.e.ly) < 5) { modo.e.lx = 0; modo.e.ly = 0; }
+    pinta(); return;
+  }
+  if (modo.tipo === "h") { arrastraH(p, ev); pinta(); return; }
+  if (modo.tipo === "lazo") {
+    modo.p1 = p;
+    var r2 = svg.getBoundingClientRect(), x0 = Math.min(modo.sx, ev.clientX) - r2.left, y0 = Math.min(modo.sy, ev.clientY) - r2.top;
+    lazo.setAttribute("x", x0); lazo.setAttribute("y", y0); lazo.setAttribute("width", Math.abs(ev.clientX - modo.sx)); lazo.setAttribute("height", Math.abs(ev.clientY - modo.sy));
+    lazo.setAttribute("display", Math.abs(ev.clientX - modo.sx) + Math.abs(ev.clientY - modo.sy) > 4 ? "inline" : "none");
+  }
+});
+function finPuntero() {
+  if (!modo) return;
+  var m = modo; modo = null;
+  if (m.tipo === "lazo") {
+    lazo.setAttribute("display", "none");
+    var x0 = Math.min(m.p0[0], m.p1[0]), x1 = Math.max(m.p0[0], m.p1[0]), y0 = Math.min(m.p0[1], m.p1[1]), y1 = Math.max(m.p0[1], m.p1[1]);
+    if ((x1 - x0) * V.z + (y1 - y0) * V.z > 4) {
+      hoja().els.forEach(function (e) {
+        if (e.lock) return;
+        var dentro = e.t === "path" ? e.pts.some(function (q) { return q[0] >= x0 && q[0] <= x1 && q[1] >= y0 && q[1] <= y1; }) : (e.x >= x0 && e.x <= x1 && e.y >= y0 && e.y <= y1);
+        if (dentro) sel.add(e.id);
+      });
+    }
+    refresca(); return;
+  }
+  if ((m.tipo === "mover" && m.mov) || m.tipo === "h" || (m.tipo === "eti" && m.mov)) { registra(); panel(); lista(); }
+}
+svg.addEventListener("pointerup", finPuntero);
+svg.addEventListener("pointercancel", finPuntero);
+svg.addEventListener("dblclick", function (ev) {
+  if (dib) { terminaDib(); return; }
+  var bajo = document.elementFromPoint(ev.clientX, ev.clientY), tg = bajo && bajo.closest ? bajo.closest("[data-id]") : null; if (!tg) return;
+  var e = porId(tg.getAttribute("data-id")); if (!e || e.t !== "path" || e.lock) return;
+  var p = aMundo(ev), best = null;
+  for (var i = 0; i < e.pts.length - 1; i++) { var r = proy(p[0], p[1], e.pts[i], e.pts[i + 1]); if (!best || r.d < best.d) best = { d: r.d, i: i, px: r.px, py: r.py }; }
+  if (best && best.d * V.z < 20) { e.pts.splice(best.i + 1, 0, imanP([best.px, best.py])); sel = new Set([e.id]); registra(); refresca(); }
+});
+svg.addEventListener("wheel", function (ev) {
+  ev.preventDefault();
+  var r = svg.getBoundingClientRect(), sx = ev.clientX - r.left, sy = ev.clientY - r.top, dy = ev.deltaMode === 1 ? ev.deltaY * 33 : ev.deltaY;
+  var raton = !ev.ctrlKey && ev.deltaMode !== 0 || (!ev.ctrlKey && ev.deltaX === 0 && Math.abs(ev.deltaY) >= 40 && Math.abs(ev.deltaY - Math.round(ev.deltaY)) < 1e-6);
+  if (ev.ctrlKey || raton) zoomEn(sx, sy, Math.exp(-dy * (ev.ctrlKey ? 0.01 : 0.0015)));
+  else { V.tx -= ev.deltaX; V.ty -= dy; aplicaVista(); }
+  guardaPronto();
+}, { passive: false });
+window.addEventListener("resize", function () { if (V) aplicaVista(); });
+window.addEventListener("pagehide", function () { if (tReg) registra(); guardaYa(); });
+document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") { if (tReg) registra(); guardaYa(); } });
+
+function iniciaH(th, p, ev) {
+  var e = porId(th.getAttribute("data-e")); if (!e || e.lock) return;
+  var k = th.getAttribute("data-h");
+  if (k === "v") { if (!e.pts) return; var i = +th.getAttribute("data-i"); if (ev.altKey && e.pts.length > 2) { e.pts.splice(i, 1); registra(); refresca(); return; } modo = { tipo: "h", k: k, e: e, i: i }; return; }
+  var l = aLocal(e, p); modo = { tipo: "h", k: k, e: e, st: { fs: e.fs, w: e.w, h: e.h }, lx0: Math.max(1, Math.abs(l[0])) };
+}
+function aLocal(e, p) { var dx = p[0] - e.x, dy = p[1] - e.y, r = rad(e.r); return [dx * Math.cos(r) + dy * Math.sin(r), -dx * Math.sin(r) + dy * Math.cos(r)]; }
+function arrastraH(p, ev) {
+  var m = modo, e = m.e;
+  if (m.k === "v") { e.pts[m.i] = imanP(p); return; }
+  if (m.k === "punta") { var a = deg(Math.atan2(p[1] - e.y, p[0] - e.x)); e.r = Math.round(ev.shiftKey ? Math.round(a / 15) * 15 : a); e.d = Math.max(0.5, r1(Math.hypot(p[0] - e.x, p[1] - e.y) / PX)); return; }
+  if (m.k === "rot") { var b = deg(Math.atan2(p[1] - e.y, p[0] - e.x)) + 90; if (ev.shiftKey) b = Math.round(b / 15) * 15; e.r = Math.round(normDeg(b)); return; }
+  if (m.k === "res") {
+    var l = aLocal(e, p), ax = Math.max(4, Math.abs(l[0])), ay = Math.max(4, Math.abs(l[1]));
+    switch (e.t) {
+      case "txt": e.fs = clamp(Math.round(m.st.fs * ax / m.lx0), 6, 600); break;
+      case "puerta": case "vent": e.w = Math.max(0.3, r1(2 * ax / PX)); break;
+      case "cruce": e.w = Math.max(e.h + 2, r1(2 * Math.max(ax, ay) / PX)); break;
+      case "calle": e.w = Math.max(1, r1(2 * ax / PX)); e.h = Math.max(2, r1(2 * ay / PX - 2 * (e.aceras ? e.acera : 0))); break;
+      case "img": e.w = Math.max(0.5, r1(2 * ax / PX)); e.h = r1(e.w * m.st.h / m.st.w); break;
+      default: e.w = Math.max(0.2, r1(2 * ax / PX)); e.h = Math.max(0.2, r1(2 * ay / PX)); if (ev.shiftKey) e.h = r1(e.w * m.st.h / m.st.w);
+    }
+  }
+}
+function coloca(t, p, seguir) {
+  if (t === "img") { $("#fImg").click(); return; }
+  var q = imanP(p), parts = t.split(":"), e;
+  if (parts[0] === "veh") e = crea("veh", q[0], q[1], { vt: parts[1] });
+  else if (parts[0] === "mue") e = crea("mue", q[0], q[1], { mt: parts[1] });
+  else e = crea(parts[0], q[0], q[1]);
+  hoja().els.push(e); sel = new Set([e.id]);
+  if (!seguir) ponHerr("sel");
+  registra(); refresca();
+  if (e.t === "txt") setTimeout(function () { var ta = document.querySelector('#props textarea[data-p="texto"]'); if (ta) { ta.focus(); ta.select(); } }, 40);
+}
+function anadePunto(p) {
+  var q = imanP(p);
+  if (!dib) dib = { k: herr.split(":")[1], pts: [q], cur: q };
+  else { var u = dib.pts[dib.pts.length - 1]; if (Math.hypot(q[0] - u[0], q[1] - u[1]) * V.z > 3) dib.pts.push(q); }
+  pinta(); pistaTxt();
+}
+function terminaDib() {
+  if (!dib) return;
+  var d = dib; dib = null;
+  if (d.pts.length >= 2) { var e = crea("path", 0, 0, { k: d.k, pts: d.pts }); hoja().els.push(e); sel = new Set([e.id]); registra(); }
+  ponHerr("sel"); refresca();
+}
+document.addEventListener("keydown", function (ev) {
+  var t = ev.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")) { if (ev.key === "Escape") t.blur(); return; }
+  if ($("#ayuda").classList.contains("on") || $("#dlg").classList.contains("on")) { if (ev.key === "Escape") { $("#ayuda").classList.remove("on"); cierraDlg(false); } return; }
+  var mod = ev.ctrlKey || ev.metaKey, k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+  if (k === " ") { if (!espacio) { espacio = true; svg.classList.add("mano"); } ev.preventDefault(); return; }
+  if (mod && k === "z") { ev.preventDefault(); if (ev.shiftKey) rehaz(); else deshaz(); return; }
+  if (mod && k === "y") { ev.preventDefault(); rehaz(); return; }
+  if (mod && k === "d") { ev.preventDefault(); duplica(); return; }
+  if (mod && k === "c") { copia(); return; }
+  if (mod && k === "v") { pega(); return; }
+  if (mod && k === "a") { ev.preventDefault(); hoja().els.forEach(function (e) { if (!e.lock) sel.add(e.id); }); refresca(); return; }
+  if (mod) return;
+  if (k === "Escape") { if (dib) { dib = null; ponHerr("sel"); refresca(); return; } if (herr !== "sel") { ponHerr("sel"); return; } if (sel.size) { sel.clear(); refresca(); } return; }
+  if (k === "Enter" && dib) { terminaDib(); return; }
+  if (k === "Delete" || k === "Backspace") { ev.preventDefault(); borra(); return; }
+  if (k === "r") { gira(ev.shiftKey ? -15 : 15); return; }
+  if (k === "+" || k === "=") { zoomEn(svg.clientWidth / 2, svg.clientHeight / 2, 1.25); return; }
+  if (k === "-") { zoomEn(svg.clientWidth / 2, svg.clientHeight / 2, 0.8); return; }
+  if (k === "0") { ajusta(); return; }
+  var dd = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[k];
+  if (dd && sel.size) { ev.preventDefault(); var st = (ev.shiftKey ? 1 : 0.1) * PX; selEls().forEach(function (e) { if (e.lock) return; if (e.pts) e.pts = e.pts.map(function (q) { return [q[0] + dd[0] * st, q[1] + dd[1] * st]; }); else { e.x += dd[0] * st; e.y += dd[1] * st; } }); registraPronto(); pinta(); }
+});
+document.addEventListener("keyup", function (ev) { if (ev.key === " ") { espacio = false; svg.classList.remove("mano"); } });
+
+/* ------------------------------------------------------------ acciones */
+function borra() { if (!sel.size) return; var h = hoja(); h.els = h.els.filter(function (e) { return !sel.has(e.id) || e.lock; }); sel.clear(); registra(); refresca(); }
+function gira(d) { var c = 0; selEls().forEach(function (e) { if (e.lock || e.t === "path") return; e.r = normDeg(Math.round((e.r + d) / 15) * 15); c++; }); if (c) { registra(); refresca(); } }
+function clona(e, dx, dy) { var n = JSON.parse(JSON.stringify(e)); n.id = "e" + (S.sig++); n.z = S.sig; if (n.pts) n.pts = n.pts.map(function (q) { return [q[0] + dx, q[1] + dy]; }); else { n.x += dx; n.y += dy; } return n; }
+function duplica() { var L = selEls(); if (!L.length) return; var h = hoja(), nuevos = L.map(function (e) { return clona(e, PX, PX); }); nuevos.forEach(function (n) { h.els.push(n); }); sel = new Set(nuevos.map(function (n) { return n.id; })); registra(); refresca(); }
+function copia() { var L = selEls(); if (L.length) { porta = JSON.parse(JSON.stringify(L)); aviso("Copiado: " + L.length + (L.length === 1 ? " elemento." : " elementos.")); } }
+function pega() { if (!porta || !porta.length) return; var h = hoja(), nuevos = porta.map(function (e) { return clona(e, PX, PX); }); nuevos.forEach(function (n) { h.els.push(n); }); porta = nuevos.map(function (n) { return JSON.parse(JSON.stringify(n)); }); sel = new Set(nuevos.map(function (n) { return n.id; })); registra(); refresca(); }
+function capaZ(e, frente) { var h = hoja(), zs = h.els.filter(function (q) { return CAPA[q.t] === CAPA[e.t]; }).map(function (q) { return q.z; }); e.z = frente ? Math.max.apply(null, zs) + 1 : Math.min.apply(null, zs) - 1; registra(); refresca(); }
+
+/* ------------------------------------------------------------ deshacer y guardar */
+function snap() { return JSON.stringify({ titulo: S.titulo, autores: S.autores, sensor: S.sensor, hoja: S.hoja, sig: S.sig, hojas: S.hojas.map(function (h) { return { id: h.id, nombre: h.nombre, desc: h.desc, sim: h.sim, conos: h.conos, els: h.els }; }) }); }
+/* Dentro de un iframe (por ejemplo, en Google Sites) el trabajo no se conserva al recargar: hay que guardarlo en archivo. */
+var ENMARCADO = (function () { try { return window.self !== window.top; } catch (x) { return true; } })();
+var guardadoEn = null;
+function firma() { return JSON.stringify({ titulo: S.titulo, autores: S.autores, sensor: S.sensor, hojas: S.hojas.map(function (h) { return { nombre: h.nombre, desc: h.desc, sim: h.sim, conos: h.conos, els: h.els }; }) }); }
+function marcaPendiente() {
+  if (!ENMARCADO) return;
+  var p = firma() !== guardadoEn, b = $("#bGua");
+  b.classList.toggle("pend", p);
+  b.title = p ? "Hay cambios que todavía no están en ningún archivo: pulsad para descargarlo" : "Guardar la planta en un archivo .planta.json";
+}
+function registra() {
+  clearTimeout(tReg); tReg = null;
+  var s = snap(); if (hist[hi] !== s) { hist = hist.slice(0, hi + 1); hist.push(s); if (hist.length > 150) hist.shift(); hi = hist.length - 1; }
+  guardaPronto(); botonesHist(); marcaPendiente();
+}
+var tReg = null; function registraPronto() { clearTimeout(tReg); tReg = setTimeout(registra, 500); }
+function restaura(s) {
+  var o = JSON.parse(s), vistas = {};
+  S.hojas.forEach(function (h) { vistas[h.id] = h.vista; });
+  S.titulo = o.titulo; S.autores = o.autores; S.sensor = o.sensor; S.sig = o.sig; S.hoja = clamp(o.hoja, 0, o.hojas.length - 1);
+  S.hojas = o.hojas.map(function (h) { h.vista = vistas[h.id] || null; return h; });
+  sel.clear(); dib = null; cabecera(); pestanas(); vistaHoja(); refresca(); guardaPronto(); botonesHist();
+}
+function deshaz() { if (tReg) registra(); if (hi > 0) { hi--; restaura(hist[hi]); } }
+function rehaz() { if (hi < hist.length - 1) { hi++; restaura(hist[hi]); } }
+function botonesHist() { $("#bDes").disabled = hi <= 0; $("#bReh").disabled = hi >= hist.length - 1; }
+function serializa() {
+  var usadas = {}; S.hojas.forEach(function (h) { h.els.forEach(function (e) { if (e.t === "img") usadas[e.ik] = 1; }); });
+  var imgs = {}; Object.keys(usadas).forEach(function (k) { if (S.imgs[k]) imgs[k] = S.imgs[k]; });
+  return { app: "rea-editor-plantas", v: 3, titulo: S.titulo, autores: S.autores, sensor: S.sensor, hoja: S.hoja, sig: S.sig, hojas: S.hojas, imgs: imgs };
+}
+var tGua = null;
+function guardaPronto() { clearTimeout(tGua); tGua = setTimeout(guardaYa, 400); }
+function guardaYa() { try { localStorage.setItem(CLAVE, JSON.stringify(serializa())); } catch (x) { aviso("No se ha podido guardar en este navegador (puede que la imagen de fondo sea muy grande). Usad «Guardar» para descargar el archivo."); } }
+function valida(o) {
+  if (!o || !Array.isArray(o.hojas) || !o.hojas.length) return null;
+  o.imgs = o.imgs || {}; if (!SENS[o.sensor]) o.sensor = "s35";
+  var mx = 0;
+  o.hojas.forEach(function (h) {
+    h.id = h.id || nid(); h.nombre = h.nombre || "Hoja"; h.desc = h.desc || ""; h.sim = +h.sim || 1; h.conos = ["sutil", "corto", "marcado", "no"].indexOf(h.conos) >= 0 ? h.conos : "sutil"; h.els = Array.isArray(h.els) ? h.els : []; h.vista = h.vista && isFinite(h.vista.z) ? h.vista : null;
+    h.els = h.els.filter(function (e) { return e && e.t && CAPA[e.t] != null && (e.t !== "path" || (Array.isArray(e.pts) && e.pts.length > 1)); });
+    h.els.forEach(function (e) { var n = parseInt(String(e.id).slice(1), 10); if (!isNaN(n)) mx = Math.max(mx, n); mx = Math.max(mx, e.z || 0); });
+  });
+  o.titulo = o.titulo || ""; o.autores = o.autores || ""; o.hoja = clamp(o.hoja | 0, 0, o.hojas.length - 1); o.sig = Math.max(o.sig | 0, mx + 1); o.app = "rea-editor-plantas"; o.v = 3;
+  return o;
+}
+function arranca(o) { S = o; sel.clear(); dib = null; hist = []; hi = -1; guardadoEn = firma(); cabecera(); pestanas(); vistaHoja(); registra(); refresca(); }
+
+/* ------------------------------------------------------------ exportación */
+function T(x, y, s, o) { return '<text x="' + f2(x) + '" y="' + f2(y) + '" font-size="' + o.fs + '" font-family="Segoe UI, Arial, sans-serif" fill="' + (o.fill || "#222") + '" text-anchor="' + (o.anchor || "start") + '"' + (o.w ? ' font-weight="' + o.w + '"' : "") + ">" + esc(s) + "</text>"; }
+function corta(s, n) { s = String(s || ""); return s.length > n ? s.slice(0, Math.max(1, n - 1)) + "…" : s; }
+function escalaBarra(x, y, k) {
+  var opc = [0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000], m = opc[opc.length - 1];
+  for (var i = 0; i < opc.length; i++) if (opc[i] * PX * k >= 110) { m = opc[i]; break; }
+  var L = m * PX * k, o = R(x - 8, y - 34, L + 16, 50, 4, "#ffffff", ' opacity=".9"');
+  o += R(x, y - 8, L / 2, 8, 0, "#333333") + R(x + L / 2, y - 8, L / 2, 8, 0, "#ffffff", ' stroke="#333" stroke-width="1.5"') + R(x, y - 8, L, 8, 0, "none", ' stroke="#333" stroke-width="1.5"');
+  o += T(x, y - 14, "0", { fs: 18, fill: "#333" }) + T(x + L, y - 14, fmt(m, m < 1 ? 1 : 0) + " m", { fs: 18, fill: "#333", anchor: "end" });
+  return o;
+}
+function leyenda(x, y, w, s) {
+  var it = [["cam", "Cámara y su número"], ["camf", "Posición final"], ["per", "Personaje"], ["veh", "Vehículo"], ["eje", "Eje"], ["rper", "Recorrido de personaje"], ["rveh", "Recorrido de vehículo"], ["rcam", "Movimiento de cámara"]];
+  var cw = w / 4, o = "";
+  it.forEach(function (q, i) {
+    var cx = x + (i % 4) * cw, cy = y + Math.floor(i / 4) * 42, sy = cy - 7, sym = "";
+    switch (q[0]) {
+      case "cam": sym = R(cx, sy - 10, 22, 20, 3, COLCAM) + P([[cx + 22, sy - 5], [cx + 30, sy - 9], [cx + 30, sy + 9], [cx + 22, sy + 5]], COLCAM) + T(cx + 11, sy + 6, "3", { fs: 14, fill: "#fff", anchor: "middle", w: "800" }); break;
+      case "camf": sym = R(cx, sy - 10, 22, 20, 3, "#ffffff", ' stroke="' + COLCAM + '" stroke-width="2" stroke-dasharray="5 4"') + P([[cx + 22, sy - 5], [cx + 30, sy - 9], [cx + 30, sy + 9], [cx + 22, sy + 5]], "#ffffff", ' stroke="' + COLCAM + '" stroke-width="1.5" stroke-dasharray="4 3"'); break;
+      case "per": sym = '<circle cx="' + (cx + 12) + '" cy="' + sy + '" r="10" fill="#2e8b57"/>' + P([[cx + 20, sy - 6], [cx + 30, sy], [cx + 20, sy + 6]], "#2e8b57"); break;
+      case "veh": sym = R(cx, sy - 9, 34, 18, 5, "#c0392b") + P([[cx + 22, sy - 7], [cx + 27, sy - 6], [cx + 27, sy + 6], [cx + 22, sy + 7]], "#2b3440"); break;
+      case "eje": sym = Ln(cx, sy, cx + 36, sy, KP.eje.c, 3, ' stroke-dasharray="9 7"'); break;
+      case "rper": sym = Ln(cx, sy, cx + 26, sy, KP.per.c, 3) + P([[cx + 36, sy], [cx + 24, sy - 7], [cx + 24, sy + 7]], KP.per.c); break;
+      case "rveh": sym = Ln(cx, sy, cx + 26, sy, KP.veh.c, 4) + P([[cx + 36, sy], [cx + 24, sy - 8], [cx + 24, sy + 8]], KP.veh.c); break;
+      case "rcam": sym = Ln(cx, sy, cx + 26, sy, KP.cam.c, 3, ' stroke-dasharray="9 7"') + P([[cx + 36, sy], [cx + 24, sy - 7], [cx + 24, sy + 7]], KP.cam.c); break;
+    }
+    o += sym + T(cx + 46, cy, q[1], { fs: 21, fill: "#333" });
+  });
+  return o;
+}
+function tablaCams(cams, x, y, w, hMax, h) {
+  var filas = cams.map(function (e) {
+    var es = estima(e, h), extra = [];
+    if (e.ghost) extra.push("posición final");
+    if (es) extra.push(es.corto);
+    if (avisos(h)[e.id]) extra.push("al otro lado del eje");
+    if (e.notas) extra.push(e.notas);
+    return { n: e.n, planos: e.planos || "—", opt: fmt(e.f, 0) + " mm · " + Math.round(deg(hfov(e.f))) + "°", tipo: TIPOS[e.tipo] || "", extra: extra.join(" · ") };
+  });
+  var alto = 46; filas.forEach(function (f) { alto += 40 + (f.extra ? 28 : 0); });
+  var sc = Math.min(1, (hMax - 56) / alto), o = T(x, y + 32, "Cámaras", { fs: 30, w: "700", fill: "#111" });
+  var ww = w / sc, cols = [0, 60, 230, 420], g = '<g transform="translate(' + f2(x) + " " + f2(y + 52) + ") scale(" + sc.toFixed(4) + ')">';
+  g += R(0, 0, ww, 38, 0, "#efefef") + T(cols[0] + 8, 27, "Nº", { fs: 21, w: "700" }) + T(cols[1] + 8, 27, "Planos", { fs: 21, w: "700" }) + T(cols[2] + 8, 27, "Óptica", { fs: 21, w: "700" }) + T(cols[3] + 8, 27, "Tipo", { fs: 21, w: "700" });
+  var yy = 38;
+  filas.forEach(function (f) {
+    var hh = 40 + (f.extra ? 28 : 0);
+    g += T(cols[0] + 8, yy + 28, corta(f.n, 4), { fs: 22, w: "800", fill: COLCAM }) + T(cols[1] + 8, yy + 28, corta(f.planos, 14), { fs: 21 }) + T(cols[2] + 8, yy + 28, f.opt, { fs: 21 }) + T(cols[3] + 8, yy + 28, corta(f.tipo, Math.floor((ww - cols[3] - 10) / 10.5)), { fs: 19, fill: "#444" });
+    if (f.extra) g += T(cols[1] + 8, yy + 58, corta(f.extra, Math.floor((ww - cols[1] - 10) / 9.5)), { fs: 18, fill: "#666" });
+    yy += hh; g += Ln(0, yy, ww, yy, "#dddddd", 1.5);
+  });
+  return o + g + "</g>";
+}
+function paginaSVG(h, idx, tot) {
+  var W = 2339, H = 1654, M = 64, c = ctx(h, true), inner = "";
+  ordenados(h.els).forEach(function (e) { inner += rEl(e, c); });
+  var mg = $("#medG"); mg.innerHTML = inner; var bb; try { bb = mg.getBBox(); } catch (x) { bb = { x: 0, y: 0, width: 100, height: 100 }; } mg.innerHTML = "";
+  var cams = h.els.filter(function (e) { return e.t === "cam"; }).sort(function (a, b) { return (parseInt(a.n, 10) || 0) - (parseInt(b.n, 10) || 0) || (a.ghost ? 1 : 0) - (b.ghost ? 1 : 0); });
+  var tW = cams.length ? 640 : 0, gap = cams.length ? 34 : 0, top = 178, bottom = H - 150, ax = M, ay = top, aw = W - 2 * M - tW - gap, ah = bottom - top, pad = 34;
+  var k = Math.min((aw - 2 * pad) / Math.max(bb.width, 1), (ah - 2 * pad) / Math.max(bb.height, 1), 8);
+  var ox = ax + (aw - bb.width * k) / 2 - bb.x * k, oy = ay + (ah - bb.height * k) / 2 - bb.y * k;
+  var hoy = new Date().toLocaleDateString("es-ES"), o = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + " " + H + '">';
+  o += '<defs><clipPath id="area"><rect x="' + ax + '" y="' + ay + '" width="' + aw + '" height="' + ah + '"/></clipPath></defs>';
+  o += R(0, 0, W, H, 0, "#ffffff");
+  o += T(M, 84, corta(S.titulo || "Planta de cámara", 70), { fs: 46, w: "700", fill: "#111" }) + T(W - M, 84, hoy, { fs: 26, fill: "#666", anchor: "end" });
+  o += T(M, 134, corta((h.nombre || "Hoja") + (h.desc ? " · " + h.desc : ""), 110), { fs: 30, fill: "#333" }) + (S.autores ? T(W - M, 134, corta(S.autores, 60), { fs: 26, fill: "#444", anchor: "end" }) : "");
+  o += Ln(M, 156, W - M, 156, "#bbbbbb", 2);
+  o += R(ax, ay, aw, ah, 0, "#ffffff", ' stroke="#d0d0d0" stroke-width="2"');
+  o += '<g clip-path="url(#area)"><g transform="translate(' + f2(ox) + " " + f2(oy) + ") scale(" + k.toFixed(5) + ')">' + inner + "</g></g>";
+  o += escalaBarra(ax + 30, ay + ah - 24, k);
+  if (cams.length) o += tablaCams(cams, W - M - tW, ay, tW, ah, h);
+  o += leyenda(M + 6, H - 104, W - 2 * M);
+  o += T(M, H - 26, "REA · Editor de plantas de cámara · sensor " + sens().c + (h.sim !== 1 ? " · símbolos a ×" + String(h.sim).replace(".", ",") : ""), { fs: 19, fill: "#999" }) + T(W - M, H - 26, "Hoja " + (idx + 1) + " de " + tot, { fs: 19, fill: "#999", anchor: "end" });
+  return { svg: o + "</svg>", W: W, H: H };
+}
+function rasteriza(svgStr, W, H) {
+  return new Promise(function (ok, ko) {
+    var img = new Image();
+    img.onload = function () { var cv = document.createElement("canvas"); cv.width = W; cv.height = H; var cx = cv.getContext("2d"); cx.fillStyle = "#ffffff"; cx.fillRect(0, 0, W, H); cx.drawImage(img, 0, 0, W, H); ok(cv); };
+    img.onerror = function () { ko(new Error("No se ha podido dibujar la hoja.")); };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgStr);
+  });
+}
+function b64Bytes(b64) { var bin = atob(b64), u = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+function creaPDF(pags) {
+  var partes = [], off = 0, offs = [], enc = function (s) { var u = new Uint8Array(s.length); for (var i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 255; return u; };
+  function pon(d) { var b = typeof d === "string" ? enc(d) : d; partes.push(b); off += b.length; }
+  function obj(n, cuerpo, stream) { offs[n] = off; pon(n + " 0 obj\n" + cuerpo); if (stream) { pon("\nstream\n"); pon(stream); pon("\nendstream"); } pon("\nendobj\n"); }
+  pon("%PDF-1.4\n"); pon(new Uint8Array([37, 226, 227, 207, 211, 10]));
+  var n = pags.length, ids = pags.map(function (_, i) { return { pg: 3 + i * 3, ct: 4 + i * 3, im: 5 + i * 3 }; });
+  obj(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  obj(2, "<< /Type /Pages /Kids [" + ids.map(function (q) { return q.pg + " 0 R"; }).join(" ") + "] /Count " + n + " >>");
+  pags.forEach(function (p, i) {
+    var q = ids[i], cs = "q 842 0 0 595 0 0 cm /Im" + i + " Do Q";
+    obj(q.pg, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /XObject << /Im" + i + " " + q.im + " 0 R >> >> /Contents " + q.ct + " 0 R >>");
+    obj(q.ct, "<< /Length " + cs.length + " >>", enc(cs));
+    obj(q.im, "<< /Type /XObject /Subtype /Image /Width " + p.w + " /Height " + p.h + " /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length " + p.bytes.length + " >>", p.bytes);
+  });
+  var tot = 3 + n * 3, xref = off, x = "xref\n0 " + tot + "\n0000000000 65535 f \n";
+  for (var i = 1; i < tot; i++) x += ("0000000000" + offs[i]).slice(-10) + " 00000 n \n";
+  pon(x + "trailer\n<< /Size " + tot + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF\n");
+  return new Blob(partes, { type: "application/pdf" });
+}
+function limpia(s) { return String(s || "").replace(/[\\\/:*?"<>|\n\r\t]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 80); }
+function nombreBase() { return "Planta" + (S.titulo ? " - " + limpia(S.titulo) : ""); }
+function descarga(blob, nombre) { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 2000); }
+var ocupado = false;
+function exportaPNG() {
+  var h = hoja(); if (!h.els.length) { aviso("La hoja está vacía."); return; }
+  if (ocupado) return; ocupado = true; aviso("Preparando la imagen…");
+  var pg = paginaSVG(h, S.hoja, S.hojas.length);
+  rasteriza(pg.svg, pg.W, pg.H).then(function (cv) { cv.toBlob(function (b) { descarga(b, nombreBase() + " - " + limpia(h.nombre || "hoja") + ".png"); aviso("Imagen descargada."); ocupado = false; }, "image/png"); })
+    .catch(function (x) { aviso(x.message); ocupado = false; });
+}
+function exportaPDF() {
+  var hs = S.hojas.filter(function (h) { return h.els.length; }); if (!hs.length) { aviso("No hay nada dibujado todavía."); return; }
+  if (ocupado) return; ocupado = true; aviso("Preparando el PDF…");
+  var pags = [], i = 0;
+  (function sig() {
+    if (i >= hs.length) { descarga(creaPDF(pags), nombreBase() + ".pdf"); aviso("PDF descargado: " + hs.length + (hs.length === 1 ? " página." : " páginas.")); ocupado = false; return; }
+    var pg = paginaSVG(hs[i], i, hs.length);
+    rasteriza(pg.svg, pg.W, pg.H).then(function (cv) { pags.push({ bytes: b64Bytes(cv.toDataURL("image/jpeg", 0.9).split(",")[1]), w: cv.width, h: cv.height }); i++; sig(); })
+      .catch(function (x) { aviso(x.message); ocupado = false; });
+  })();
+}
+window.__rea = { estado: function () { return S; }, paginaSVG: paginaSVG, creaPDF: creaPDF, crea: crea, refresca: function () { refresca(); }, registra: function () { registra(); } };
+
+/* ------------------------------------------------------------ interfaz */
+function ponHerr(t) {
+  if (dib && t !== herr) { if (dib.pts.length >= 2) { var d = dib; dib = null; var e = crea("path", 0, 0, { k: d.k, pts: d.pts }); hoja().els.push(e); sel = new Set([e.id]); registra(); } else dib = null; }
+  herr = t;
+  Array.prototype.forEach.call(document.querySelectorAll(".ht"), function (b) { b.classList.toggle("on", b.getAttribute("data-t") === t); });
+  svg.classList.toggle("colocando", t !== "sel" && t !== "mano" && t.indexOf("path:") !== 0);
+  svg.classList.toggle("dibujando", t.indexOf("path:") === 0);
+  svg.classList.toggle("mano", t === "mano");
+  refresca();
+}
+function pistaTxt(w) {
+  var t;
+  if (dib) t = "Clic para añadir puntos · doble clic o Intro para terminar · Esc para cancelar";
+  else if (herr === "sel") t = sel.size ? "Arrastrad para mover · R gira · Supr borra · Ctrl+D duplica · Ctrl+Z deshace" : "Clic para seleccionar · arrastrad en vacío para seleccionar varios · rueda para acercar";
+  else if (herr === "mano") t = "Arrastrad para desplazar la vista";
+  else if (herr.indexOf("path:") === 0) t = "Clic en la planta para empezar el trazo";
+  else if (herr === "img") t = "Elegid una imagen del ordenador";
+  else t = "Clic en la planta para colocar: " + (NOMHERR[herr] || "") + " · con Mayús, varios seguidos";
+  w = w || avisos(hoja());
+  var mal = hoja().els.filter(function (e) { return w[e.id]; }).map(function (e) { return e.n; });
+  $("#pista").innerHTML = esc(t) + (mal.length ? "<br><b>" + (mal.length === 1 ? "La cámara " + esc(mal[0]) + " está" : "Las cámaras " + esc(mal.join(", ")) + " están") + " al otro lado del eje.</b>" : "");
+}
+function paleta() {
+  var o = "";
+  PAL.forEach(function (g) {
+    o += '<div class="grp"><h3>' + g.g + '</h3><div class="grid2">';
+    g.it.forEach(function (i) { o += '<button class="ht' + (i[0] === herr ? " on" : "") + '" data-t="' + i[0] + '" title="' + esc(i[1]) + '"><svg viewBox="0 0 28 24">' + (ICO[i[0]] || "") + "</svg>" + esc(i[1]) + "</button>"; });
+    o += "</div></div>";
+  });
+  $("#herr").innerHTML = o;
+}
+$("#herr").addEventListener("click", function (ev) {
+  var b = ev.target.closest(".ht"); if (!b) return;
+  var t = b.getAttribute("data-t");
+  if (t === "img") { $("#fImg").click(); return; }
+  ponHerr(t);
+});
+function pestanas() {
+  var o = "";
+  S.hojas.forEach(function (h, i) { o += '<button class="pe' + (i === S.hoja ? " on" : "") + '" data-i="' + i + '" title="Doble clic para cambiar el nombre">' + esc(h.nombre || "Hoja") + "</button>"; });
+  o += '<span id="mas"><button id="bMas" title="Añadir una hoja">+ Hoja</button><div class="menu" id="mMas">'
+    + '<button data-pl="blanco">Hoja en blanco</button><button data-pl="calle">Calle con dos manzanas</button><button data-pl="cruce">Cruce con cuatro manzanas</button><button data-pl="interior">Interior de un coche</button><button data-pl="duplicar">Copia de esta hoja</button></div></span>';
+  $("#pest").innerHTML = o;
+}
+$("#pest").addEventListener("click", function (ev) {
+  var b = ev.target.closest(".pe");
+  if (b) { cambiaHoja(+b.getAttribute("data-i")); return; }
+  if (ev.target.id === "bMas") { var m = $("#mMas"), r = ev.target.getBoundingClientRect(); m.style.position = "fixed"; m.style.left = r.left + "px"; m.style.top = (r.bottom + 4) + "px"; m.classList.toggle("on"); return; }
+  var pl = ev.target.getAttribute("data-pl"); if (pl) { $("#mMas").classList.remove("on"); plantilla(pl); }
+});
+$("#pest").addEventListener("dblclick", function (ev) {
+  var b = ev.target.closest(".pe"); if (!b) return;
+  var i = +b.getAttribute("data-i"), inp = document.createElement("input"); inp.value = S.hojas[i].nombre; inp.style.width = "150px";
+  b.replaceWith(inp); inp.focus(); inp.select();
+  var fin = function () { S.hojas[i].nombre = inp.value.trim() || S.hojas[i].nombre; registra(); pestanas(); refresca(); };
+  inp.addEventListener("blur", fin); inp.addEventListener("keydown", function (e) { if (e.key === "Enter") inp.blur(); if (e.key === "Escape") { inp.value = S.hojas[i].nombre; inp.blur(); } });
+});
+document.addEventListener("pointerdown", function (ev) { var m = $("#mMas"); if (m && m.classList.contains("on") && !ev.target.closest("#mas")) m.classList.remove("on"); });
+function cambiaHoja(i) { if (i === S.hoja) return; if (dib) ponHerr("sel"); S.hoja = i; sel.clear(); pestanas(); vistaHoja(); refresca(); guardaPronto(); }
+function plantilla(t) {
+  var h;
+  if (t === "duplicar") { var src = hoja(); h = JSON.parse(JSON.stringify(src)); h.id = nid(); h.nombre = src.nombre + " (copia)"; h.vista = null; var mapa = {}; h.els.forEach(function (e) { var n = "e" + (S.sig++); mapa[e.id] = n; e.id = n; }); h.els.forEach(function (e) { if (e.obj && mapa[e.obj]) e.obj = mapa[e.obj]; }); }
+  else h = nuevaHoja(t === "calle" ? "Calle" : t === "cruce" ? "Cruce" : t === "interior" ? "Interior del coche" : "Hoja " + (S.hojas.length + 1));
+  S.hojas.push(h); S.hoja = S.hojas.length - 1; sel.clear();
+  if (t === "calle") { h.els.push(crea("calle", 0, 0)); h.els[0].w = 50; var a = crea("edi", 0, -14 * PX), b = crea("edi", 0, 14 * PX); a.w = b.w = 46; a.h = b.h = 14; h.els.push(a, b); }
+  else if (t === "cruce") { var c = crea("cruce", 0, 0); c.w = 50; h.els.push(c); [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(function (q) { var e = crea("edi", q[0] * 15 * PX, q[1] * 15 * PX); e.w = e.h = 16; h.els.push(e); }); }
+  else if (t === "interior") { h.els.push(crea("int", 0, 0)); h.sim = 0.5; }
+  pestanas(); vistaHoja(); registra(); refresca();
+  if (h.els.length) ajusta();
+}
+function cabecera() {
+  $("#tit").value = S.titulo || ""; $("#aut").value = S.autores || "";
+  $("#sen").innerHTML = Object.keys(SENS).map(function (k) { return '<option value="' + k + '"' + (k === S.sensor ? " selected" : "") + ">Sensor: " + SENS[k].n + "</option>"; }).join("");
+}
+$("#tit").addEventListener("input", function () { S.titulo = this.value; registraPronto(); });
+$("#aut").addEventListener("input", function () { S.autores = this.value; registraPronto(); });
+$("#sen").addEventListener("change", function () { S.sensor = this.value; registra(); refresca(); });
+function refresca() { pinta(); panel(); lista(); pistaTxt(); }
+
+/* ------------------------------------------------------------ panel de propiedades */
+function campo(lab, html) { return '<div class="f"><label>' + lab + "</label><div>" + html + "</div></div>"; }
+function iTxt(p, v, ph) { return '<input type="text" data-p="' + p + '" data-k="t" value="' + esc(v) + '" placeholder="' + esc(ph || "") + '">'; }
+function iNum(p, v, mn, mx, st) { return '<input type="number" data-p="' + p + '" data-k="n" value="' + v + '" min="' + mn + '" max="' + mx + '" step="' + st + '">'; }
+function iSel(p, v, opc) { return '<select data-p="' + p + '" data-k="s">' + opc.map(function (o) { return '<option value="' + o[0] + '"' + (String(o[0]) === String(v) ? " selected" : "") + ">" + esc(o[1]) + "</option>"; }).join("") + "</select>"; }
+function iChk(p, v, lab) { return '<label class="chk"><input type="checkbox" data-p="' + p + '" data-k="b"' + (v ? " checked" : "") + "> " + lab + "</label>"; }
+function iArea(p, v, rows) { return '<textarea data-p="' + p + '" data-k="t" rows="' + (rows || 3) + '">' + esc(v) + "</textarea>"; }
+function iCol(p, v, pal) { return '<div class="chips">' + pal.map(function (c) { return '<button class="chip' + (c.toLowerCase() === String(v).toLowerCase() ? " on" : "") + '" data-p="' + p + '" data-k="c" data-v="' + c + '" style="background:' + c + '" title="' + c + '"></button>'; }).join("") + '<input type="color" data-p="' + p + '" data-k="t" value="' + v + '" title="Otro color"></div>'; }
+function iRot(e) { return '<div class="fila">' + iNum("r", Math.round(e.r), -180, 180, 1) + ' <button class="mini" data-acc="g-">−15°</button><button class="mini" data-acc="g+">+15°</button></div>'; }
+function botonesEl(e) {
+  var et = (e.lx || e.ly) ? '<div class="acc"><button class="mini" data-acc="etiReset">Devolver la etiqueta a su sitio</button></div>' : "";
+  return et + '<div class="acc"><button class="mini" data-acc="dup">Duplicar</button><button class="mini" data-acc="frente">Al frente</button><button class="mini" data-acc="fondo">Al fondo</button><button class="mini" data-acc="borrar">Eliminar</button></div>'
+    + '<div class="f" style="margin-top:10px"><label>Bloquear</label><div>' + iChk("lock", e.lock, "no se mueve ni se selecciona en la planta") + "</div></div>";
+}
+function infoCam(e) {
+  var hf = hfov(e.f), es = estima(e, hoja()), w = avisos(hoja())[e.id];
+  return "Ángulo horizontal: <b>" + Math.round(deg(hf)) + "°</b> (" + tipoOpt(e.f) + ", sensor " + sens().c + ")." + (es ? "<br>" + (es.fuera ? '<span class="mal">' + es.largo + "</span>" : es.largo) : "") + (w ? '<br><span class="mal">Esta cámara está en el lado sombreado del eje.</span>' : "");
+}
+function panel() {
+  var L = selEls(), o = "";
+  if (!L.length) {
+    var h = hoja();
+    o += "<h2>Hoja</h2>" + campo("Nombre", iTxt("h.nombre", h.nombre)) + campo("Descripción", iArea("h.desc", h.desc, 2))
+      + '<p class="nota">La descripción sale debajo del título en la exportación, por ejemplo: «Calle del banco · planos 1 a 14».</p>'
+      + campo("Tamaño de símbolos", iSel("h.sim", h.sim, [[0.5, "×0,5 (interiores pequeños)"], [0.75, "×0,75"], [1, "Escala real"], [1.5, "×1,5"], [2, "×2"], [3, "×3"], [5, "×5"], [8, "×8"], [12, "×12"]]))
+      + '<p class="nota">Cambia el tamaño de cámaras, personajes, vehículos, trazos y textos sin cambiar las distancias. Ampliadlo en un mapa de recorrido grande; reducidlo en el interior de un coche.</p>'
+      + campo("Conos de las cámaras", iSel("h.conos", h.conos || "sutil", [["sutil", "suaves"], ["corto", "cortos: solo la apertura"], ["marcado", "marcados"], ["no", "ocultos"]]))
+      + '<p class="nota">La cámara seleccionada muestra siempre su cono completo. El PNG y el PDF salen como se elija aquí.</p>'
+      + '<div class="acc"><button class="mini" data-acc="ajustar">Ajustar la vista</button><button class="mini" data-acc="hIzq">Mover a la izquierda</button><button class="mini" data-acc="hDer">Mover a la derecha</button><button class="mini" data-acc="hBorrar">Eliminar la hoja</button></div>';
+    $("#props").innerHTML = o; return;
+  }
+  if (L.length > 1) {
+    o += "<h2>" + L.length + " elementos</h2><p class=\"nota\">Arrastrad cualquiera para mover todos. R gira cada uno.</p>"
+      + '<div class="acc"><button class="mini" data-acc="dup">Duplicar</button><button class="mini" data-acc="borrar">Eliminar</button><button class="mini" data-acc="bloqTodo">Bloquear todos</button><button class="mini" data-acc="desbTodo">Desbloquear todos</button></div>';
+    $("#props").innerHTML = o; return;
+  }
+  var e = L[0];
+  switch (e.t) {
+    case "cam":
+      o += "<h2>Cámara " + esc(e.n) + "</h2>" + campo("Número", iTxt("n", e.n)) + campo("Planos", iTxt("planos", e.planos, "por ejemplo: 2, 5, 9"))
+        + campo("Óptica (mm)", '<div class="fila">' + iNum("f", e.f, 4, 1200, 1) + "</div>") + '<div class="fila" style="margin:-2px 0 4px 110px">' + OPTICAS.map(function (f) { return '<button class="mini' + (e.f === f ? " on" : "") + '" data-acc="f" data-v="' + f + '">' + f + "</button>"; }).join("") + "</div>"
+        + '<div class="info" id="infoCam">' + infoCam(e) + "</div>"
+        + campo("Largo del cono (m)", iNum("d", e.d, 0.5, 400, 0.5)) + campo("Orientación (°)", iRot(e))
+        + campo("Tipo", iSel("tipo", e.tipo, Object.keys(TIPOS).map(function (k) { return [k, TIPOS[k]]; })))
+        + campo("Encuadra a", iSel("obj", e.obj, [["", "— nadie en concreto —"]].concat(hoja().els.filter(function (q) { return q.t === "per"; }).map(function (q) { return [q.id, q.nombre || q.id]; }))))
+        + campo("Posición final", iChk("ghost", e.ghost, "dibujar en discontinuo (llegada de un movimiento)"))
+        + campo("Etiqueta", iChk("eti", e.eti, "mostrar óptica y planos junto a la cámara"))
+        + campo("Notas", iArea("notas", e.notas, 2)) + campo("Color", iCol("color", e.color, [COLCAM, "#7d4bb5", "#1b8a8a", "#333333", "#c0392b"]))
+        + '<p class="nota">Un triángulo por emplazamiento: si la cámara cambia de óptica sin moverse, añadid el plano a «Planos». Si se mueve, dibujad el movimiento y duplicadla como posición final.</p>'
+        + '<p class="nota">Si la etiqueta de la óptica se solapa con algo, arrastradla para apartarla.</p>';
+      break;
+    case "per":
+      o += "<h2>Personaje</h2>" + campo("Nombre", iTxt("nombre", e.nombre)) + campo("Color", iCol("color", e.color, PALETA)) + campo("Mira hacia (°)", iRot(e))
+        + campo("Posición final", iChk("ghost", e.ghost, "dibujar en discontinuo"))
+        + '<p class="nota">Para un desplazamiento: duplicad el personaje (Ctrl+D), llevad la copia a la llegada, marcadla como posición final y unid las dos con «Recorrido de personaje».</p>'
+        + '<p class="nota">Si el nombre se solapa con otro, arrastradlo: el personaje no se mueve y el nombre queda unido a él con una línea fina.</p>';
+      break;
+    case "veh":
+      o += "<h2>" + VEH[e.vt].n + "</h2>" + campo("Tipo", iSel("vt", e.vt, Object.keys(VEH).map(function (k) { return [k, VEH[k].n]; }))) + campo("Etiqueta", iTxt("nombre", e.nombre, "por ejemplo: coche de Baby"))
+        + campo("Color", iCol("color", e.color, PALVEH)) + campo("Orientación (°)", iRot(e)) + campo("Posición final", iChk("ghost", e.ghost, "dibujar en discontinuo"))
+        + '<p class="nota">El morro mira hacia la derecha cuando la orientación es 0°. Medidas reales: ' + fmt(VEH[e.vt].L, 1) + " × " + fmt(VEH[e.vt].W, 1) + " m.</p>";
+      break;
+    case "int":
+      o += "<h2>Interior de coche</h2>" + campo("Largo (m)", iNum("w", e.w, 2, 40, 0.1)) + campo("Ancho (m)", iNum("h", e.h, 1, 12, 0.05))
+        + campo("Tamaño", '<div class="fila">' + [[1, "real"], [1.5, "×1,5"], [2, "×2"], [3, "×3"]].map(function (q) { return '<button class="mini' + (Math.abs(e.w - 4.6 * q[0]) < 0.05 ? " on" : "") + '" data-acc="intK" data-v="' + q[0] + '">' + q[1] + "</button>"; }).join("") + "</div>")
+        + campo("Volante", iSel("volante", e.volante, [["izq", "a la izquierda (España)"], ["der", "a la derecha (Reino Unido)"]])) + campo("Color", iCol("color", e.color, PALVEH))
+        + campo("Orientación (°)", iRot(e)) + campo("Etiqueta", iTxt("nombre", e.nombre))
+        + '<p class="nota">A tamaño real, acercad la vista para colocar a los personajes en los asientos y las cámaras dentro o pegadas a las ventanillas. Si lo dibujáis fuera de la calle, metedlo en un «Detalle ampliado» y dadle aquí el mismo tamaño que la ampliación del detalle.</p>';
+      break;
+    case "edi":
+      o += "<h2>Edificio o manzana</h2>" + campo("Texto", iArea("nombre", e.nombre, 2)) + campo("Tamaño del texto", iNum("fs", e.fs, 6, 200, 1))
+        + campo("Ancho (m)", iNum("w", e.w, 0.5, 2000, 0.5)) + campo("Fondo (m)", iNum("h", e.h, 0.5, 2000, 0.5)) + campo("Color", iCol("color", e.color, PALEDI)) + campo("Orientación (°)", iRot(e));
+      break;
+    case "calle":
+      o += "<h2>Calle</h2>" + campo("Nombre", iTxt("nombre", e.nombre)) + campo("Largo (m)", iNum("w", e.w, 1, 5000, 1)) + campo("Calzada (m)", iNum("h", e.h, 2, 60, 0.5))
+        + campo("Carriles", iNum("carriles", e.carriles, 1, 8, 1)) + campo("Centro", iSel("centro", e.centro, [["disc", "línea discontinua"], ["cont", "línea continua doble"], ["mediana", "mediana"]]))
+        + campo("Aceras", iChk("aceras", e.aceras, "con aceras")) + campo("Ancho de acera (m)", iNum("acera", e.acera, 0.5, 20, 0.5)) + campo("Orientación (°)", iRot(e));
+      break;
+    case "cruce":
+      o += "<h2>Cruce</h2>" + campo("Tamaño (m)", iNum("w", e.w, 6, 5000, 1)) + campo("Calzada (m)", iNum("h", e.h, 2, 60, 0.5))
+        + campo("Aceras", iChk("aceras", e.aceras, "con aceras")) + campo("Ancho de acera (m)", iNum("acera", e.acera, 0.5, 20, 0.5)) + campo("Pasos de cebra", iChk("pasos", e.pasos, "en los cuatro brazos")) + campo("Orientación (°)", iRot(e));
+      break;
+    case "cebra": o += "<h2>Paso de cebra</h2>" + campo("Largo de las franjas (m)", iNum("w", e.w, 1, 20, 0.5)) + campo("Ancho (m)", iNum("h", e.h, 1, 60, 0.5)) + campo("Orientación (°)", iRot(e)); break;
+    case "aparc": o += "<h2>Aparcamiento</h2>" + campo("Texto", iTxt("nombre", e.nombre)) + campo("Ancho (m)", iNum("w", e.w, 3, 500, 0.5)) + campo("Fondo (m)", iNum("h", e.h, 3, 500, 0.5)) + campo("Orientación (°)", iRot(e)); break;
+    case "puerta": o += "<h2>Puerta</h2>" + campo("Ancho (m)", iNum("w", e.w, 0.4, 10, 0.1)) + campo("Abre hacia", iSel("abre", e.abre, [["izq", "un lado"], ["der", "el otro lado"]])) + campo("Etiqueta", iTxt("nombre", e.nombre)) + campo("Orientación (°)", iRot(e)); break;
+    case "vent": o += "<h2>Ventana</h2>" + campo("Ancho (m)", iNum("w", e.w, 0.3, 50, 0.1)) + campo("Etiqueta", iTxt("nombre", e.nombre)) + campo("Orientación (°)", iRot(e)); break;
+    case "mue":
+      o += "<h2>" + MUEB[e.mt].n + "</h2>" + campo("Tipo", iSel("mt", e.mt, Object.keys(MUEB).map(function (k) { return [k, MUEB[k].n]; }))) + campo("Ancho (m)", iNum("w", e.w, 0.1, 50, 0.05)) + campo("Fondo (m)", iNum("h", e.h, 0.1, 50, 0.05))
+        + campo("Etiqueta", iTxt("nombre", e.nombre)) + campo("Orientación (°)", iRot(e));
+      break;
+    case "img":
+      o += "<h2>Imagen de fondo</h2>" + campo("Ancho (m)", iNum("w", e.w, 0.5, 20000, 0.5)) + campo("Opacidad", '<input type="range" data-p="op" data-k="n" min="0.1" max="1" step="0.05" value="' + e.op + '">') + campo("Orientación (°)", iRot(e))
+        + '<p class="nota">Sirve para calcar un plano o un mapa. Ajustad el ancho para que coincida con la escala y bloqueadla para que no se mueva al dibujar encima.</p>';
+      break;
+    case "txt":
+      o += "<h2>Texto</h2>" + campo("Texto", iArea("texto", e.texto, 3)) + campo("Tamaño", iNum("fs", e.fs, 6, 600, 1)) + campo("Estilo", '<div class="fila">' + iChk("neg", e.neg, "negrita") + iChk("fondo", e.fondo, "fondo blanco") + "</div>")
+        + campo("Color", iCol("color", e.color, ["#222222", "#c0392b", "#1f5fa8", "#2e8b57", "#e07b00", "#7d4bb5", "#ffffff"])) + campo("Orientación (°)", iRot(e));
+      break;
+    case "det":
+      o += "<h2>Detalle " + esc(e.letra) + "</h2>" + campo("Letra", iTxt("letra", e.letra)) + campo("Título", iTxt("titulo", e.titulo, "por ejemplo: interior del coche"))
+        + campo("Ampliación", iSel("esc", e.esc, [[1, "la misma escala"], [1.5, "×1,5"], [2, "×2"], [3, "×3"], [4, "×4"]]))
+        + campo("Ancho (m)", iNum("w", e.w, 1, 500, 0.5)) + campo("Alto (m)", iNum("h", e.h, 1, 500, 0.5)) + campo("Fondo", iChk("fondo", e.fondo, "blanco: tapa lo que haya debajo"))
+        + '<div class="acc"><button class="mini" data-acc="detSel">Seleccionar el detalle con todo lo que tiene dentro</button></div>'
+        + '<p class="nota">Un detalle es una parte de la planta dibujada aparte y más grande, en una zona vacía de la hoja. Dentro, dibujad a esa escala (un interior de coche ×2 mide el doble); el editor divide las distancias por la ampliación al calcular el tamaño de plano. En la planta general, marcad el sitio con una «Llamada» de la misma letra.</p>';
+      break;
+    case "lla":
+      o += "<h2>Llamada " + esc(e.letra) + "</h2>" + campo("Letra", iTxt("letra", e.letra)) + '<p class="nota">Colocadla junto a lo que se amplía, por ejemplo el coche en la calle, con la misma letra que su detalle.</p>';
+      break;
+    case "path":
+      o += "<h2>" + KP[e.k].n + "</h2>" + campo("Tipo", iSel("k", e.k, Object.keys(KP).map(function (k) { return [k, KP[k].n]; }))) + campo("Etiqueta", iTxt("nombre", e.nombre))
+        + (e.k === "eje" ? campo("Lado que no se cruza", iSel("lado", e.lado, [["no", "sin sombrear"], ["a", "sombrear un lado"], ["b", "sombrear el otro lado"]])) + '<p class="nota">El editor marca en rojo las cámaras que quedan en el lado sombreado del eje más cercano.</p>' : "")
+        + campo("Forma", '<div class="fila">' + iChk("suave", e.suave, "curva suave") + iChk("disc", e.disc, "discontinua") + "</div>")
+        + campo("Flecha", iSel("fl", e.fl, [["no", "sin flecha"], ["fin", "al final"], ["ambas", "en los dos extremos"]])) + campo("Grosor", iNum("g", e.g, 1, 20, 0.5))
+        + campo("Color", iCol("color", e.color, ["#e07b00", "#2e8b57", "#c0392b", "#1f5fa8", "#333333", "#7d4bb5"]))
+        + '<p class="nota">Arrastrad los puntos blancos para cambiar el trazo. Doble clic sobre el trazo añade un punto; Alt+clic en un punto lo quita.</p>';
+      break;
+  }
+  o += botonesEl(e);
+  $("#props").innerHTML = o;
+}
+function valorDe(inp) {
+  var k = inp.getAttribute("data-k");
+  if (k === "b") return inp.checked;
+  if (k === "n") { var v = parseFloat(String(inp.value).replace(",", ".")); return isNaN(v) ? null : v; }
+  if (k === "c") return inp.getAttribute("data-v");
+  return inp.value;
+}
+function aplica(inp, final) {
+  var p = inp.getAttribute("data-p"); if (!p) return;
+  var v = valorDe(inp); if (v === null) return;
+  if (p.indexOf("h.") === 0) {
+    var h = hoja(), q = p.slice(2); h[q] = q === "sim" ? parseFloat(v) : v;
+    if (q === "nombre") pestanas();
+    pinta(); if (final) registra(); else registraPronto(); return;
+  }
+  var e = selEls()[0]; if (!e) return;
+  if (p === "r") v = normDeg(v);
+  if (p === "k") { var K = KP[v]; e.k = v; e.color = K.c; e.g = K.g; e.disc = K.disc; e.fl = K.fl; if (v === "eje" && !e.nombre) e.nombre = "Eje"; e[p] = v; registra(); refresca(); return; }
+  if (p === "vt") { e.vt = v; registra(); refresca(); return; }
+  if (p === "mt") { e.mt = v; e.w = MUEB[v].w; e.h = MUEB[v].h; registra(); refresca(); return; }
+  if (p === "w" && e.t === "img") { var rt = e.h / e.w; e.w = v; e.h = r1(v * rt); }
+  else e[p] = v;
+  if (p === "lock") { if (v) { registra(); refresca(); return; } }
+  pinta();
+  if (e.t === "cam") { var ic = $("#infoCam"); if (ic) ic.innerHTML = infoCam(e); }
+  if (inp.getAttribute("data-k") === "c") { Array.prototype.forEach.call(document.querySelectorAll('#props .chip[data-p="' + p + '"]'), function (b) { b.classList.toggle("on", b === inp); }); var ci = document.querySelector('#props input[type=color][data-p="' + p + '"]'); if (ci) ci.value = v; }
+  if (final) { registra(); lista(); } else registraPronto();
+  if (final && (p === "n" || p === "nombre")) { var h2 = $("#props h2"); if (h2 && e.t === "cam") h2.textContent = "Cámara " + e.n; }
+}
+$("#props").addEventListener("input", function (ev) { if (ev.target.getAttribute("data-p")) aplica(ev.target, false); });
+$("#props").addEventListener("change", function (ev) { if (ev.target.getAttribute("data-p")) aplica(ev.target, true); });
+$("#props").addEventListener("click", function (ev) {
+  var b = ev.target.closest("button"); if (!b) return;
+  if (b.getAttribute("data-k") === "c") { aplica(b, true); return; }
+  var a = b.getAttribute("data-acc"); if (!a) return;
+  var e = selEls()[0], h = hoja();
+  switch (a) {
+    case "g+": gira(15); break; case "g-": gira(-15); break;
+    case "f": e.f = +b.getAttribute("data-v"); registra(); refresca(); break;
+    case "dup": duplica(); break; case "borrar": borra(); break;
+    case "frente": capaZ(e, true); break; case "fondo": capaZ(e, false); break;
+    case "bloqTodo": selEls().forEach(function (q) { q.lock = true; }); registra(); refresca(); break;
+    case "desbTodo": selEls().forEach(function (q) { q.lock = false; }); registra(); refresca(); break;
+    case "intK": var kk = +b.getAttribute("data-v"); e.w = Math.round(4.6 * kk * 100) / 100; e.h = Math.round(1.85 * kk * 100) / 100; registra(); refresca(); break;
+    case "etiReset": e.lx = 0; e.ly = 0; registra(); refresca(); break;
+    case "detSel":
+      var dentro = h.els.filter(function (q) { if (q === e || q.lock) return false; var pt = q.t === "path" ? q.pts[0] : [q.x, q.y], l = aLocal(e, pt); return Math.abs(l[0]) <= e.w * PX / 2 && Math.abs(l[1]) <= e.h * PX / 2; });
+      sel = new Set([e.id].concat(dentro.map(function (q) { return q.id; }))); refresca(); break;
+    case "ajustar": ajusta(); break;
+    case "hIzq": if (S.hoja > 0) { S.hojas.splice(S.hoja - 1, 0, S.hojas.splice(S.hoja, 1)[0]); S.hoja--; registra(); pestanas(); } break;
+    case "hDer": if (S.hoja < S.hojas.length - 1) { S.hojas.splice(S.hoja + 1, 0, S.hojas.splice(S.hoja, 1)[0]); S.hoja++; registra(); pestanas(); } break;
+    case "hBorrar":
+      if (S.hojas.length < 2) { aviso("Es la única hoja: no se puede eliminar."); break; }
+      dialogo("¿Eliminar la hoja «" + esc(h.nombre) + "» con todo lo que tiene? Se puede recuperar con Deshacer.", function () { S.hojas.splice(S.hoja, 1); S.hoja = Math.max(0, S.hoja - 1); sel.clear(); registra(); pestanas(); vistaHoja(); refresca(); });
+      break;
+  }
+});
+
+/* ------------------------------------------------------------ lista */
+function etiquetaEl(e) {
+  switch (e.t) {
+    case "cam": return "Cámara " + e.n + (e.planos ? " · planos " + e.planos : "") + " · " + fmt(e.f, 0) + " mm" + (e.ghost ? " · final" : "");
+    case "per": return (e.nombre || "Personaje") + (e.ghost ? " · final" : "");
+    case "veh": return VEH[e.vt].n + (e.nombre ? " · " + e.nombre : "") + (e.ghost ? " · final" : "");
+    case "path": return KP[e.k].n + (e.nombre && e.nombre !== "Eje" ? " · " + e.nombre : "");
+    case "mue": return MUEB[e.mt].n + (e.nombre ? " · " + e.nombre : "");
+    case "txt": return "Texto · " + corta(String(e.texto).replace(/\n/g, " "), 24);
+    case "edi": return "Edificio" + (e.nombre ? " · " + corta(String(e.nombre).replace(/\n/g, " "), 22) : "");
+    case "calle": return "Calle" + (e.nombre ? " · " + e.nombre : "");
+    case "int": return "Interior de coche" + (e.nombre ? " · " + e.nombre : "");
+    case "det": return "Detalle " + (e.letra || "") + (e.titulo ? " · " + e.titulo : "");
+    case "lla": return "Llamada " + (e.letra || "");
+  }
+  return NOMBRES[e.t] + (e.nombre ? " · " + e.nombre : "");
+}
+var ORDENLISTA = { cam: 0, per: 1, veh: 2, path: 3, int: 4, txt: 5, edi: 6, calle: 7, cruce: 8, cebra: 9, aparc: 10, puerta: 11, vent: 12, mue: 13, img: 14, det: 15, lla: 16 };
+function lista() {
+  var h = hoja(), w = avisos(h), L = h.els.slice().sort(function (a, b) { return (ORDENLISTA[a.t] - ORDENLISTA[b.t]) || (a.t === "cam" ? ((parseInt(a.n, 10) || 0) - (parseInt(b.n, 10) || 0)) : 0) || (a.z - b.z); });
+  var o = "<h2>En esta hoja (" + L.length + ")</h2>";
+  if (!L.length) o += '<p class="nota">Todavía no hay nada.</p>';
+  L.forEach(function (e) {
+    var col = e.t === "cam" ? (e.color || COLCAM) : (e.color && e.t !== "edi" && e.t !== "int" ? e.color : "#888");
+    o += '<div class="it' + (sel.has(e.id) ? " on" : "") + '" data-id="' + e.id + '" title="Clic para seleccionar · doble clic para ir a él"><span class="p" style="background:' + col + '"></span>' + esc(etiquetaEl(e)) + (w[e.id] ? ' <b style="color:#ff8a7a">· otro lado del eje</b>' : "") + (e.lock ? "<i>bloqueado</i>" : "") + "</div>";
+  });
+  $("#lista").innerHTML = o;
+}
+$("#lista").addEventListener("click", function (ev) { var it = ev.target.closest(".it"); if (!it) return; var id = it.getAttribute("data-id"); if (ev.shiftKey) { if (sel.has(id)) sel.delete(id); else sel.add(id); } else sel = new Set([id]); if (herr !== "sel") ponHerr("sel"); refresca(); });
+$("#lista").addEventListener("dblclick", function (ev) { var it = ev.target.closest(".it"); if (!it) return; var e = porId(it.getAttribute("data-id")); if (e) centraEn(e); });
+
+/* ------------------------------------------------------------ archivos, avisos y diálogos */
+var tAv = null;
+function aviso(t) { var a = $("#aviso"); a.textContent = t; a.classList.add("on"); clearTimeout(tAv); tAv = setTimeout(function () { a.classList.remove("on"); }, 3200); }
+var dlgOk = null;
+function dialogo(t, ok) { $("#dlgTxt").innerHTML = t; dlgOk = ok; $("#dlg").classList.add("on"); }
+function cierraDlg(si) { $("#dlg").classList.remove("on"); var f = dlgOk; dlgOk = null; if (si && f) f(); }
+$("#dlgSi").addEventListener("click", function () { cierraDlg(true); });
+$("#dlgNo").addEventListener("click", function () { cierraDlg(false); });
+$("#bDes").addEventListener("click", deshaz);
+$("#bReh").addEventListener("click", rehaz);
+$("#bNue").addEventListener("click", function () { dialogo("¿Empezar una planta nueva? Lo que no hayáis guardado en un archivo se perderá.", function () { arranca(nuevoEstado()); }); });
+$("#bGua").addEventListener("click", function () { descarga(new Blob([JSON.stringify(serializa())], { type: "application/json" }), nombreBase() + ".planta.json"); guardadoEn = firma(); marcaPendiente(); aviso("Archivo descargado. Para seguir otro día, abridlo con «Abrir»."); });
+$("#bAbr").addEventListener("click", function () { $("#fArch").value = ""; $("#fArch").click(); });
+$("#fArch").addEventListener("change", function () {
+  var f = this.files[0]; if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function () { var o = null; try { o = valida(JSON.parse(rd.result)); } catch (x) { o = null; } if (!o) { aviso("Ese archivo no es una planta de este editor."); return; } arranca(o); aviso("Planta abierta."); };
+  rd.readAsText(f);
+});
+$("#fImg").addEventListener("change", function () {
+  var f = this.files[0]; this.value = ""; if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function () {
+    var im = new Image();
+    im.onload = function () {
+      var nw = im.naturalWidth, nh = im.naturalHeight, src = rd.result, mx = 2400;
+      if (Math.max(nw, nh) > mx) { var k = mx / Math.max(nw, nh), cv = document.createElement("canvas"); cv.width = Math.round(nw * k); cv.height = Math.round(nh * k); cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height); src = cv.toDataURL("image/jpeg", 0.86); nw = cv.width; nh = cv.height; }
+      var ik = "i" + Date.now().toString(36); S.imgs[ik] = src;
+      var W = svg.clientWidth, H = svg.clientHeight, cx = (W / 2 - V.tx) / V.z, cy = (H / 2 - V.ty) / V.z, w = r1(Math.max(5, (W * 0.6 / V.z) / PX));
+      var e = crea("img", cx, cy, { ik: ik, w: w, h: r1(w * nh / nw) });
+      hoja().els.push(e); sel = new Set([e.id]); ponHerr("sel"); registra(); refresca();
+    };
+    im.src = rd.result;
+  };
+  rd.readAsDataURL(f);
+});
+$("#bPng").addEventListener("click", exportaPNG);
+$("#bPdf").addEventListener("click", exportaPDF);
+$("#bAyu").addEventListener("click", function () { $("#ayuda").classList.add("on"); });
+$("#bCieA").addEventListener("click", function () { $("#ayuda").classList.remove("on"); });
+$("#ayuda").addEventListener("click", function (ev) { if (ev.target.id === "ayuda") $("#ayuda").classList.remove("on"); });
+$("#bEje").addEventListener("click", function () { $("#ayuda").classList.remove("on"); ejemplo(); });
+$("#zMas").addEventListener("click", function () { zoomEn(svg.clientWidth / 2, svg.clientHeight / 2, 1.25); guardaPronto(); });
+$("#zMen").addEventListener("click", function () { zoomEn(svg.clientWidth / 2, svg.clientHeight / 2, 0.8); guardaPronto(); });
+$("#zAju").addEventListener("click", function () { ajusta(); guardaPronto(); });
+$("#bRej").addEventListener("click", function () { rejOn = !rejOn; this.classList.toggle("on", rejOn); aplicaVista(); });
+$("#bIma").addEventListener("click", function () { iman = !iman; this.classList.toggle("on", iman); });
+
+function ejemplo() {
+  var h = nuevaHoja("Ejemplo · conversación en la acera"); S.hojas.push(h); S.hoja = S.hojas.length - 1; sel.clear(); h.sim = 1.5;
+  var m = function (v) { return v * PX; }, add = function (e) { h.els.push(e); return e; }, ang = function (a, b) { return Math.round(deg(Math.atan2(b[1] - a[1], b[0] - a[0]))); };
+  var ca = add(crea("calle", 0, 0)); ca.w = 30; ca.h = 7; ca.acera = 4;
+  var ed = add(crea("edi", 0, m(-13.5))); ed.w = 20; ed.h = 12; ed.nombre = "CAFETERÍA"; ed.fs = 26;
+  var pu = add(crea("puerta", m(3), m(-7.5))); pu.w = 1.6; pu.abre = "der";
+  var a = add(crea("per", m(-1.5), m(-5.5))); a.nombre = "Ana"; a.color = PALETA[0];
+  var b = add(crea("per", m(1.5), m(-5.5))); b.nombre = "Bruno"; b.color = PALETA[1]; b.r = 180;
+  var ej = add(crea("path", 0, 0, { k: "eje", pts: [[m(-4.5), m(-5.5)], [m(4.5), m(-5.5)]] })); ej.lado = "b"; ej.nombre = "";
+  var c1 = add(crea("cam", 0, m(-1.2))); c1.n = "1"; c1.f = 24; c1.d = 5; c1.r = -90; c1.planos = "1, 4";
+  var c2 = add(crea("cam", m(-3), m(-4.2))); c2.n = "2"; c2.f = 50; c2.d = 5.5; c2.r = ang([c2.x, c2.y], [b.x, b.y]); c2.obj = b.id; c2.planos = "2";
+  var c3 = add(crea("cam", m(3), m(-4.2))); c3.n = "3"; c3.f = 50; c3.d = 5.5; c3.r = ang([c3.x, c3.y], [a.x, a.y]); c3.obj = a.id; c3.planos = "3";
+  add(crea("veh", m(-12), m(1.75), { vt: "coche" }));
+  add(crea("path", 0, 0, { k: "veh", pts: [[m(-9.4), m(1.75)], [m(12), m(1.75)]] }));
+  var c4 = add(crea("cam", m(-7), m(5.5))); c4.n = "4"; c4.f = 35; c4.d = 6; c4.r = -90; c4.tipo = "travelling"; c4.planos = "5";
+  var c4f = add(crea("cam", m(6), m(5.5))); c4f.n = "4"; c4f.f = 35; c4f.d = 6; c4f.r = -90; c4f.tipo = "travelling"; c4f.ghost = true; c4f.planos = "5"; c4f.eti = false;
+  add(crea("path", 0, 0, { k: "cam", pts: [[m(-5.9), m(5.5)], [m(4.9), m(5.5)]] }));
+  h.desc = "ejemplo para practicar, no es una secuencia real";
+  pestanas(); vistaHoja(); registra(); refresca(); ajusta();
+}
+
+/* ------------------------------------------------------------ arranque */
+paleta();
+if (ENMARCADO) {
+  $("#notaTxt").innerHTML = "En esta página el trabajo <b>no se guarda solo</b>: si recargáis o cerráis la pestaña, se pierde todo lo que no esté en un archivo. Pulsad «Guardar» a menudo y, para seguir otro día, abrid ese archivo con «Abrir».";
+  $("#nota").classList.add("on");
+  $("#ayGua").innerHTML = "En esta página no se guarda nada solo. «Guardar» descarga un archivo <i>.planta.json</i>; el punto naranja del botón indica que hay cambios sin descargar. Para seguir otro día, abrid ese archivo con «Abrir».";
+  $("#notaOk").addEventListener("click", function () { $("#nota").classList.remove("on"); if (V) aplicaVista(); });
+}
+(function () {
+  var o = null; try { var t = localStorage.getItem(CLAVE); if (t) o = valida(JSON.parse(t)); } catch (x) { o = null; }
+  arranca(o || nuevoEstado());
+})();
+})();
+</script>
+</body>
+</html>
